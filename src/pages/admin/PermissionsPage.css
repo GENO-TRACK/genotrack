@@ -1,0 +1,260 @@
+/* Edit Permissions: access matrix + high-security actions */
+
+.pm-crumbs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+    color: #6b7780;
+    font-size: 13px;
+}
+
+.pm-crumbs a {
+    color: #a3adb5;
+    text-decoration: none;
+}
+
+.pm-crumbs a:hover {
+    color: #2dd4bf;
+}
+
+.pm-crumbs b {
+    color: #2dd4bf;
+}
+
+.pm-person {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.pm-avatar {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #14b8a6, #0f766e);
+    color: #04201c;
+    font-size: 26px;
+    font-weight: 800;
+}
+
+.pm-person h3 {
+    margin: 0 0 6px;
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.pm-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.pm-badges em {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 800;
+}
+
+.pm-badges .lab {
+    background: rgba(96, 165, 250, 0.16);
+    color: #60a5fa;
+}
+
+.pm-badges .lvl {
+    background: rgba(45, 212, 191, 0.16);
+    color: #2dd4bf;
+}
+
+.pm-last {
+    display: grid;
+    gap: 3px;
+    margin-inline-start: auto;
+    text-align: end;
+}
+
+.pm-last small {
+    color: #6b7780;
+    font-size: 11.5px;
+}
+
+.pm-last b {
+    color: #ffffff;
+    font-size: 13px;
+}
+
+.pm-matrix {
+    margin-bottom: 18px;
+}
+
+.pm-bulk {
+    display: flex;
+    gap: 8px;
+}
+
+.pm-bulk button {
+    padding: 6px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #e5eaee;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.pm-bulk button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.pm-table th.c,
+.pm-table td.c {
+    text-align: center;
+    width: 90px;
+}
+
+.pm-res {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 220px;
+}
+
+.pm-res>div {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.pm-res b {
+    color: #ffffff;
+    font-size: 14px;
+}
+
+.pm-res small {
+    color: #6b7780;
+    font-size: 12px;
+}
+
+.pm-check {
+    display: inline-grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    border-radius: 8px;
+    background: transparent;
+    color: #04201c;
+    cursor: pointer;
+    transition: background 150ms, border-color 150ms;
+}
+
+.pm-check:hover {
+    border-color: #2dd4bf;
+}
+
+.pm-check.on {
+    border-color: #14b8a6;
+    background: #14b8a6;
+}
+
+.pm-high {
+    margin-bottom: 18px;
+    border-color: rgba(251, 191, 36, 0.3) !important;
+}
+
+.pm-high .st-ico.amber {
+    background: rgba(251, 191, 36, 0.14);
+    color: #fbbf24;
+}
+
+.pm-high-title {
+    flex: 1;
+    min-width: 0;
+}
+
+.pm-high-title h3 {
+    margin: 0 0 2px;
+}
+
+.pm-high-title small {
+    color: #6b7780;
+    font-size: 12.5px;
+}
+
+.pm-token {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0 0;
+    padding: 12px 14px;
+    border: 1px solid rgba(96, 165, 250, 0.35);
+    border-radius: 12px;
+    background: rgba(96, 165, 250, 0.08);
+    color: #93c5fd;
+    font-size: 13px;
+}
+
+.pm-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.pm-helix {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: 1px solid rgba(45, 212, 191, 0.35);
+    border-radius: 999px;
+    background: rgba(20, 184, 166, 0.1);
+    color: #2dd4bf;
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 700;
+}
+
+.pm-foot>div {
+    display: flex;
+    gap: 10px;
+}
+
+.pm-foot .sf-btn {
+    height: 44px;
+    padding: 0 20px;
+}
+
+@media (max-width: 600px) {
+    .pm-last {
+        margin-inline-start: 0;
+        text-align: start;
+        width: 100%;
+    }
+
+    .pm-foot>div {
+        width: 100%;
+    }
+
+    .pm-foot .sf-btn,
+    .pm-foot .sm-add {
+        flex: 1;
+        justify-content: center;
+    }
+}

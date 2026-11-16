@@ -1,0 +1,593 @@
+    /* DNA Samples library: extends the admin glass-card styles */
+
+    .sm-add {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 44px;
+        padding: 0 20px;
+        border: 0;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #14b8a6, #0d8f87);
+        color: #04201d;
+        font: inherit;
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none;
+        white-space: nowrap;
+        box-shadow: 0 8px 24px rgba(20, 184, 166, 0.3);
+        cursor: pointer;
+        transition: box-shadow 160ms, transform 160ms;
+    }
+
+    .sm-add:hover {
+        box-shadow: 0 12px 30px rgba(20, 184, 166, 0.45);
+        transform: translateY(-1px);
+    }
+
+    .sm-pip {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+    }
+
+    .sm-pip.teal {
+        background: #2dd4bf;
+        box-shadow: 0 0 10px #2dd4bf;
+    }
+
+    .sm-pip.amber {
+        background: #fbbf24;
+        box-shadow: 0 0 10px #fbbf24;
+    }
+
+    .sm-pip.red {
+        background: #f87171;
+        box-shadow: 0 0 10px #f87171;
+    }
+
+    .sm-pip.blue {
+        background: #60a5fa;
+        box-shadow: 0 0 10px #60a5fa;
+    }
+
+    /* ---------- Filters ---------- */
+    .sm-filters {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        margin-bottom: 18px;
+    }
+
+    .sm-field {
+        display: grid;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    .sm-field>span {
+        color: #6b7780;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+    }
+
+    .sm-input,
+    .sm-select {
+        height: 44px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        color: #ffffff;
+        font: inherit;
+        font-size: 14px;
+        transition: border-color 160ms, box-shadow 160ms;
+    }
+
+    .sm-input {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 14px;
+        color: #a3adb5;
+    }
+
+    .sm-input input {
+        flex: 1;
+        min-width: 0;
+        border: 0;
+        outline: none;
+        background: transparent;
+        color: #ffffff;
+        font: inherit;
+        font-size: 14px;
+    }
+
+    .sm-select {
+        width: 100%;
+        padding: 0 12px;
+        outline: none;
+        cursor: pointer;
+    }
+
+    .sm-select option {
+        background: #0c1214;
+        color: #e6edf1;
+    }
+
+    .sm-input:focus-within,
+    .sm-select:focus {
+        border-color: #2dd4bf;
+        box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.16);
+    }
+
+    /* ---------- Table ---------- */
+    .sm-table-card {
+        padding: 8px 22px 18px;
+    }
+
+    .sm-table {
+        min-width: 860px;
+    }
+
+    .sm-who {
+        display: grid;
+        gap: 2px;
+        line-height: 1.2;
+    }
+
+    .sm-who small {
+        color: #6b7780;
+        font-size: 11px;
+        font-weight: 500;
+    }
+
+    .sm-risk.high {
+        background: rgba(248, 113, 113, 0.14);
+        color: #f87171;
+    }
+
+    .sm-risk.medium {
+        background: rgba(251, 191, 36, 0.14);
+        color: #fbbf24;
+    }
+
+    .sm-risk.low {
+        background: rgba(45, 212, 191, 0.14);
+        color: #2dd4bf;
+    }
+
+    .sm-empty {
+        padding: 36px 12px !important;
+        color: #a3adb5 !important;
+        text-align: center;
+    }
+
+    .sm-foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+        color: #6b7780;
+        font-size: 12px;
+    }
+
+    .sm-pager {
+        display: inline-flex;
+        gap: 6px;
+    }
+
+    .sm-pager button {
+        min-width: 34px;
+        height: 34px;
+        padding: 0 10px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.04);
+        color: #a3adb5;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 160ms, color 160ms, border-color 160ms;
+    }
+
+    .sm-pager button:hover:not(:disabled) {
+        border-color: #2dd4bf;
+        color: #2dd4bf;
+    }
+
+    .sm-pager button.on {
+        border-color: rgba(45, 212, 191, 0.5);
+        background: rgba(45, 212, 191, 0.18);
+        color: #2dd4bf;
+    }
+
+    .sm-pager button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    /* Prev arrow points to the start, next to the end (flips in RTL) */
+    .sm-pager button:first-child svg {
+        transform: rotate(90deg);
+    }
+
+    .sm-pager button:last-child svg {
+        transform: rotate(-90deg);
+    }
+
+    [dir="rtl"] .sm-pager button:first-child svg {
+        transform: rotate(-90deg);
+    }
+
+    [dir="rtl"] .sm-pager button:last-child svg {
+        transform: rotate(90deg);
+    }
+
+    /* ---------- Add sample form ---------- */
+    .sf-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 18px;
+        margin-bottom: 18px;
+    }
+
+    .sf-full {
+        grid-column: 1 / -1;
+    }
+
+    .sf-fields {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .sf-fields .full {
+        grid-column: 1 / -1;
+    }
+
+    .sf-input {
+        width: 100%;
+        height: 44px;
+        padding: 0 14px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        color: #ffffff;
+        font: inherit;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 160ms, box-shadow 160ms;
+    }
+
+    .sf-input:focus {
+        border-color: #2dd4bf;
+        box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.16);
+    }
+
+    .sf-input[readonly] {
+        color: #2dd4bf;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .sf-input.err {
+        border-color: #f87171;
+    }
+
+    .sf-input option {
+        background: #0c1214;
+        color: #e6edf1;
+    }
+
+    .sf-err {
+        color: #f87171;
+        font-size: 12px;
+    }
+
+    .sf-drop {
+        display: grid;
+        place-items: center;
+        gap: 6px;
+        padding: 32px 16px;
+        border: 1.5px dashed rgba(45, 212, 191, 0.4);
+        border-radius: 16px;
+        background: rgba(20, 184, 166, 0.05);
+        color: #a3adb5;
+        text-align: center;
+        cursor: pointer;
+        transition: background 160ms, border-color 160ms;
+    }
+
+    .sf-drop:hover,
+    .sf-drop.over {
+        border-color: #2dd4bf;
+        background: rgba(20, 184, 166, 0.12);
+    }
+
+    .sf-drop svg {
+        color: #2dd4bf;
+    }
+
+    .sf-drop strong {
+        color: #ffffff;
+        font-size: 15px;
+    }
+
+    .sf-drop small {
+        color: #6b7780;
+        font-size: 12px;
+    }
+
+    .sf-drop input {
+        display: none;
+    }
+
+    .sf-file {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 12px;
+        padding: 10px 14px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.04);
+        color: #e6edf1;
+        font-size: 13px;
+    }
+
+    .sf-file span {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .sf-file button {
+        border: 0;
+        background: transparent;
+        color: #f87171;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .sf-ledger {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 18px;
+        padding: 14px 18px;
+        border: 1px solid rgba(45, 212, 191, 0.3);
+        border-radius: 14px;
+        background: rgba(20, 184, 166, 0.08);
+        color: #a3adb5;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .sf-ledger svg {
+        flex-shrink: 0;
+        color: #2dd4bf;
+    }
+
+    .sf-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .sf-btn {
+        height: 46px;
+        padding: 0 22px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        color: #e6edf1;
+        font: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        cursor: pointer;
+        transition: border-color 160ms, color 160ms;
+    }
+
+    .sf-btn:hover {
+        border-color: #2dd4bf;
+        color: #2dd4bf;
+    }
+
+    .sf-btn.primary {
+        border: 0;
+        background: linear-gradient(135deg, #14b8a6, #0d8f87);
+        color: #04201d;
+        font-weight: 700;
+        box-shadow: 0 8px 24px rgba(20, 184, 166, 0.3);
+    }
+
+    .sf-btn.primary:hover {
+        color: #04201d;
+        box-shadow: 0 12px 30px rgba(20, 184, 166, 0.45);
+    }
+
+    .sf-btn:disabled {
+        opacity: 0.6;
+        cursor: wait;
+    }
+
+    .sf-saved {
+        margin-bottom: 18px;
+        padding: 12px 18px;
+        border: 1px solid rgba(45, 212, 191, 0.4);
+        border-radius: 12px;
+        background: rgba(20, 184, 166, 0.12);
+        color: #2dd4bf;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 1100px) {
+        .sm-filters {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .sm-field-search {
+            grid-column: 1 / -1;
+        }
+    }
+
+    @media (max-width: 900px) {
+        .sf-grid {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+
+    @media (max-width: 600px) {
+        .sm-filters {
+            grid-template-columns: minmax(0, 1fr);
+            gap: 12px;
+        }
+
+        .sm-table-card {
+            padding: 6px 12px 14px;
+        }
+
+        .sf-fields {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .sf-actions {
+            flex-direction: column-reverse;
+            align-items: stretch;
+        }
+
+        .sf-btn {
+            justify-content: center;
+        }
+
+        .sm-add {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    [dir="rtl"] .sm-field>span {
+        letter-spacing: 0;
+    }
+
+    /* ---------- Form polish: inputs, selects, dates, autofill ---------- */
+    .sf-input,
+    .sm-select {
+        appearance: none;
+        -webkit-appearance: none;
+        box-sizing: border-box;
+        color-scheme: dark;
+    }
+
+    .sf-input::placeholder,
+    .sm-input input::placeholder {
+        color: #6b7780;
+    }
+
+    /* Custom dropdown arrow (flips side in RTL) */
+    select.sf-input,
+    .sm-select {
+        padding-inline-end: 38px;
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+    }
+
+    [dir="rtl"] select.sf-input,
+    [dir="rtl"] .sm-select {
+        background-position: left 14px center;
+    }
+
+    /* Date picker icon in teal */
+    input[type="date"].sf-input {
+        min-height: 44px;
+    }
+
+    input[type="date"].sf-input::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+        opacity: 0.8;
+        filter: invert(78%) sepia(40%) saturate(600%) hue-rotate(120deg);
+    }
+
+    /* Chrome autofill must not turn fields white */
+    .sf-input:-webkit-autofill,
+    .sm-input input:-webkit-autofill {
+        -webkit-text-fill-color: #ffffff;
+        -webkit-box-shadow: 0 0 0 1000px #0c1416 inset;
+        caret-color: #ffffff;
+    }
+
+    /* Fields fill their grid cell and never overflow the card */
+    .sf-fields>*,
+    .sf-fields .sm-field {
+        min-width: 0;
+    }
+
+    .sf-fields .full>.sm-field {
+        width: 100%;
+    }
+
+    /* Cards inside the form: consistent breathing room */
+    .sf-grid .ad-card {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        min-width: 0;
+    }
+
+    .sf-grid .ad-card-head {
+        margin-bottom: 0;
+    }
+
+    /* Phones: single column, tighter cards, full-width actions */
+    @media (max-width: 600px) {
+        .sf-grid {
+            gap: 14px;
+        }
+
+        .sf-grid .ad-card {
+            padding: 16px;
+        }
+
+        .sf-drop {
+            padding: 24px 12px;
+        }
+
+        .sf-ledger {
+            padding: 12px 14px;
+        }
+    }
+
+    /* ---------- Mobile: header + Add button ---------- */
+    @media (max-width: 900px) {
+        .ad-head {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 16px;
+        }
+
+        .ad-head .sm-add {
+            box-sizing: border-box;
+            width: 100%;
+            justify-content: center;
+            margin-top: 4px;
+        }
+
+        .ad-stats {
+            margin-top: 8px;
+        }
+    }

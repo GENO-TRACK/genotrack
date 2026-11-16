@@ -1,0 +1,545 @@
+/* Family Linking: pedigree tree, SNP consistency, forensic samples */
+
+.fm-online {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fm-online i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #2dd4bf;
+    box-shadow: 0 0 10px #2dd4bf;
+    animation: dash-pulse 1.8s ease-in-out infinite;
+}
+
+/* ---------- Pedigree ---------- */
+.fm-tree {
+    display: grid;
+    justify-items: center;
+    gap: 0;
+    margin-bottom: 18px;
+    padding-block: 28px;
+}
+
+.fm-parents {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px;
+    width: 100%;
+    max-width: 760px;
+}
+
+.fm-person {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.fm-person.paternal {
+    border-color: rgba(96, 165, 250, 0.4);
+    box-shadow: 0 0 30px rgba(96, 165, 250, 0.08);
+}
+
+.fm-person.maternal {
+    border-color: rgba(244, 114, 182, 0.4);
+    box-shadow: 0 0 30px rgba(244, 114, 182, 0.08);
+}
+
+.fm-person header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.fm-link {
+    color: #6b7780;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+}
+
+[dir="rtl"] .fm-link {
+    letter-spacing: 0;
+}
+
+.fm-link b {
+    margin-inline-start: 4px;
+    color: #ffffff;
+}
+
+.fm-ico {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+}
+
+.fm-person.paternal .fm-ico {
+    background: rgba(96, 165, 250, 0.16);
+    color: #60a5fa;
+}
+
+.fm-person.maternal .fm-ico {
+    background: rgba(244, 114, 182, 0.16);
+    color: #f472b6;
+}
+
+.fm-person small {
+    color: #6b7780;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+[dir="rtl"] .fm-person small {
+    letter-spacing: 0;
+}
+
+.fm-person h3 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.fm-person code {
+    color: #2dd4bf;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px;
+}
+
+.fm-match {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.fm-match span {
+    color: #a3adb5;
+    font-size: 12.5px;
+}
+
+.fm-match strong {
+    color: #2dd4bf;
+    font-size: 24px;
+    font-weight: 800;
+}
+
+/* connector: one bar under the parents, then a line down to the child */
+.fm-connector {
+    position: relative;
+    width: 100%;
+    max-width: 760px;
+    height: 44px;
+}
+
+.fm-connector i {
+    position: absolute;
+    background: rgba(45, 212, 191, 0.55);
+    box-shadow: 0 0 10px rgba(45, 212, 191, 0.35);
+}
+
+/* down from each parent, towards the middle */
+.fm-connector .left,
+.fm-connector .right {
+    top: 0;
+    width: 2px;
+    height: 22px;
+}
+
+.fm-connector .left {
+    inset-inline-start: 25%;
+}
+
+.fm-connector .right {
+    inset-inline-end: 25%;
+}
+
+/* horizontal bar between the two drops */
+.fm-connector::before {
+    content: "";
+    position: absolute;
+    top: 22px;
+    inset-inline: 25%;
+    height: 2px;
+    background: rgba(45, 212, 191, 0.55);
+    box-shadow: 0 0 10px rgba(45, 212, 191, 0.35);
+}
+
+/* centre line down to the child */
+.fm-connector .center {
+    top: 22px;
+    inset-inline-start: 50%;
+    width: 2px;
+    height: 22px;
+    margin-inline-start: -1px;
+}
+
+.fm-child {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    width: 100%;
+    max-width: 360px;
+    padding: 22px;
+    border: 1px solid rgba(45, 212, 191, 0.5);
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(20, 184, 166, 0.2), rgba(20, 184, 166, 0.04));
+    box-shadow: 0 0 40px rgba(20, 184, 166, 0.15);
+    text-align: center;
+}
+
+.fm-child-ico {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(45, 212, 191, 0.18);
+    color: #2dd4bf;
+    box-shadow: 0 0 24px rgba(45, 212, 191, 0.3);
+}
+
+.fm-child small {
+    color: #a3adb5;
+    font-size: 12px;
+}
+
+.fm-child small b {
+    color: #2dd4bf;
+}
+
+.fm-child h2 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 26px;
+    font-weight: 800;
+}
+
+.fm-confirmed {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    background: rgba(45, 212, 191, 0.16);
+    color: #2dd4bf;
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+[dir="rtl"] .fm-confirmed {
+    letter-spacing: 0;
+}
+
+/* ---------- Middle row ---------- */
+.fm-mid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.fm-mid>* {
+    min-width: 0;
+}
+
+.fm-card-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.fm-card-title h3 {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    color: #ffffff;
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.fm-ico-sm {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: rgba(45, 212, 191, 0.14);
+    color: #2dd4bf;
+}
+
+/* SNP consistency */
+.fm-snp {
+    display: grid;
+    gap: 10px;
+}
+
+.fm-snp-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    color: #a3adb5;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+[dir="rtl"] .fm-snp-row {
+    letter-spacing: 0;
+}
+
+.fm-snp-row b {
+    color: #ffffff;
+    font-size: 16px;
+    letter-spacing: 0;
+}
+
+.fm-split {
+    display: flex;
+    height: 12px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.fm-split i.p {
+    background: #60a5fa;
+}
+
+.fm-split i.m {
+    background: #f472b6;
+}
+
+.fm-mutation {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.fm-mutation span {
+    color: #a3adb5;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+[dir="rtl"] .fm-mutation span {
+    letter-spacing: 0;
+}
+
+.fm-mutation strong {
+    color: #2dd4bf;
+    font-size: 26px;
+    font-weight: 800;
+}
+
+/* Forensic samples */
+.fm-count {
+    display: grid;
+    place-items: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: rgba(45, 212, 191, 0.16);
+    color: #2dd4bf;
+    font-size: 16px;
+}
+
+.fm-forensic>p {
+    margin: 0 0 14px;
+    color: #a3adb5;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.fm-samples {
+    display: grid;
+    gap: 10px;
+    margin: 0 0 16px;
+    padding: 0;
+    list-style: none;
+}
+
+.fm-samples li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.fm-samples li.pending {
+    border-style: dashed;
+}
+
+.fm-samples li>div {
+    flex: 1;
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.fm-samples b {
+    color: #ffffff;
+    font-size: 14px;
+}
+
+.fm-samples small {
+    color: #6b7780;
+    font-size: 12px;
+}
+
+.fm-status {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-style: normal;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+[dir="rtl"] .fm-status {
+    letter-spacing: 0;
+}
+
+.fm-status.verified {
+    background: rgba(45, 212, 191, 0.16);
+    color: #2dd4bf;
+}
+
+.fm-status.pending {
+    background: rgba(251, 191, 36, 0.16);
+    color: #fbbf24;
+}
+
+.fm-attach {
+    width: 100%;
+    height: 42px;
+    justify-content: center;
+}
+
+/* ---------- Footer ---------- */
+.fm-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+
+.fm-foot>div {
+    display: grid;
+    gap: 4px;
+}
+
+.fm-foot b {
+    color: #ffffff;
+    font-size: 13.5px;
+}
+
+.fm-foot .fm-closed {
+    color: #2dd4bf;
+}
+
+.fm-enc {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: 1px solid rgba(45, 212, 191, 0.35);
+    border-radius: 999px;
+    background: rgba(20, 184, 166, 0.1);
+    color: #2dd4bf;
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+[dir="rtl"] .fm-enc {
+    letter-spacing: 0;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1000px) {
+    .fm-mid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 760px) {
+    .fm-parents {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+    }
+
+    /* connectors don't make sense when parents stack: use a single drop */
+    .fm-connector {
+        height: 28px;
+    }
+
+    .fm-connector::before,
+    .fm-connector .left,
+    .fm-connector .right {
+        display: none;
+    }
+
+    .fm-connector .center {
+        top: 0;
+        height: 28px;
+    }
+}
+
+@media (max-width: 600px) {
+    .fm-tree {
+        padding-block: 20px;
+    }
+
+    .fm-person h3 {
+        font-size: 18px;
+    }
+
+    .fm-child h2 {
+        font-size: 22px;
+    }
+
+    .fm-foot {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

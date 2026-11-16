@@ -1,0 +1,403 @@
+/* Chain of Custody: summary, checksum and alternating timeline */
+
+.cu-ref {
+    color: #2dd4bf;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-weight: 600;
+}
+
+.cu-label {
+    color: #6b7780;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+[dir="rtl"] .cu-label {
+    letter-spacing: 0;
+}
+
+/* ---------- Summary ---------- */
+.cu-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.cu-summary .ad-card {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+}
+
+.cu-summary strong {
+    color: #ffffff;
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.cu-summary strong small {
+    margin-inline-start: 6px;
+    color: #6b7780;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.cu-status {
+    border-color: rgba(45, 212, 191, 0.35) !important;
+    background: linear-gradient(135deg, rgba(20, 184, 166, 0.16), rgba(20, 184, 166, 0.04)) !important;
+}
+
+.cu-status strong {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #2dd4bf;
+    font-size: 20px;
+}
+
+/* ---------- Checksum ---------- */
+.cu-hash {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 28px;
+}
+
+.cu-hash-text {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+    flex: 1;
+}
+
+.cu-hash-text code {
+    display: block;
+    overflow-wrap: anywhere;
+    color: #a3adb5;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    line-height: 1.6;
+}
+
+.cu-hash-side {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.cu-enc {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid rgba(45, 212, 191, 0.35);
+    border-radius: 999px;
+    background: rgba(20, 184, 166, 0.1);
+    color: #2dd4bf;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.cu-hash .sf-btn {
+    height: 38px;
+    padding: 0 16px;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+/* ---------- Timeline ---------- */
+.cu-timeline {
+    position: relative;
+    display: grid;
+    gap: 26px;
+    padding: 6px 0 10px;
+}
+
+/* the vertical line, centered */
+.cu-timeline::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    inset-inline-start: 50%;
+    width: 2px;
+    margin-inline-start: -1px;
+    background: linear-gradient(180deg, rgba(45, 212, 191, 0.7), rgba(45, 212, 191, 0.12));
+}
+
+.cu-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.cu-row .cu-card {
+    min-width: 0;
+}
+
+/* Card on the start side (left in LTR), the end side (right in LTR) */
+.cu-row.start .cu-card {
+    grid-column: 1;
+    margin-inline-end: 44px;
+}
+
+.cu-row.end .cu-card {
+    grid-column: 2;
+    margin-inline-start: 44px;
+}
+
+.cu-node {
+    position: absolute;
+    top: 22px;
+    inset-inline-start: 50%;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    margin-inline-start: -19px;
+    border: 2px solid #05080a;
+    border-radius: 50%;
+    color: #04201d;
+}
+
+[dir="rtl"] .cu-node {
+    margin-inline-start: 0;
+    margin-inline-end: -19px;
+}
+
+.cu-node.teal {
+    background: #2dd4bf;
+    box-shadow: 0 0 18px rgba(45, 212, 191, 0.55);
+}
+
+.cu-node.blue {
+    background: #60a5fa;
+    box-shadow: 0 0 18px rgba(96, 165, 250, 0.55);
+}
+
+.cu-node.violet {
+    background: #a78bfa;
+    box-shadow: 0 0 18px rgba(167, 139, 250, 0.55);
+}
+
+.cu-card {
+    display: grid;
+    gap: 12px;
+}
+
+.cu-when {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.cu-when b {
+    color: #2dd4bf;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.cu-when span {
+    color: #6b7780;
+    font-size: 12px;
+}
+
+.cu-card h3 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 19px;
+    font-weight: 800;
+}
+
+.cu-card p {
+    margin: 0;
+    color: #a3adb5;
+    font-size: 13.5px;
+    line-height: 1.65;
+}
+
+.cu-meta {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 12px 0 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    list-style: none;
+}
+
+.cu-meta li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    color: #a3adb5;
+    font-size: 13px;
+}
+
+.cu-meta li>svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: #2dd4bf;
+}
+
+.cu-meta li span {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.cu-meta li b {
+    color: #ffffff;
+    font-size: 13.5px;
+    font-weight: 700;
+}
+
+.cu-meta li small {
+    color: #6b7780;
+    font-size: 11.5px;
+}
+
+.cu-live {
+    color: #60a5fa !important;
+}
+
+.cu-live i {
+    width: 8px;
+    height: 8px;
+    margin-top: 5px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #60a5fa;
+    box-shadow: 0 0 10px #60a5fa;
+    animation: dash-pulse 1.8s ease-in-out infinite;
+}
+
+.cu-badge {
+    justify-self: start;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+[dir="rtl"] .cu-badge {
+    letter-spacing: 0;
+}
+
+.cu-badge.signature {
+    background: rgba(45, 212, 191, 0.14);
+    color: #2dd4bf;
+}
+
+.cu-badge.auth {
+    background: rgba(96, 165, 250, 0.14);
+    color: #60a5fa;
+}
+
+.cu-badge.status {
+    background: rgba(167, 139, 250, 0.14);
+    color: #a78bfa;
+}
+
+/* ---------- Footer ---------- */
+.cu-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 30px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: #6b7780;
+}
+
+.cu-foot-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.cu-foot .sf-btn {
+    height: 40px;
+    padding: 0 16px;
+    font-size: 13px;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1100px) {
+    .cu-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* Tablet & phone: one column, line on the start edge */
+@media (max-width: 900px) {
+    .cu-timeline::before {
+        inset-inline-start: 19px;
+        margin-inline-start: 0;
+    }
+
+    .cu-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cu-row.start .cu-card,
+    .cu-row.end .cu-card {
+        grid-column: 1;
+        margin-inline-start: 56px;
+        margin-inline-end: 0;
+    }
+
+    .cu-node,
+    [dir="rtl"] .cu-node {
+        inset-inline-start: 0;
+        margin: 0;
+    }
+
+    .cu-hash {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .cu-hash-side {
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 600px) {
+    .cu-summary {
+        gap: 12px;
+    }
+
+    .cu-summary strong {
+        font-size: 21px;
+    }
+
+    .cu-row.start .cu-card,
+    .cu-row.end .cu-card {
+        margin-inline-start: 50px;
+    }
+
+    .cu-foot {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .cu-foot .sf-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

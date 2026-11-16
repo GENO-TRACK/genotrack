@@ -1,0 +1,173 @@
+/* OTP page: reuses Login.css; only the OTP-specific parts live here */
+
+.otp-back {
+    display: inline-block;
+    margin-bottom: 8px;
+    color: #a3adb5;
+    font-size: 13px;
+    text-decoration: none;
+    transition: color 160ms;
+}
+
+.otp-back:hover {
+    color: #2dd4bf;
+}
+
+/* Character inside the card */
+.otp-character {
+    display: flex;
+    justify-content: center;
+    margin: 0 0 12px;
+    pointer-events: none;
+}
+
+.otp-character img {
+    display: block;
+    width: auto;
+    height: 170px;
+    max-width: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 24px rgba(20, 184, 166, 0.25));
+}
+
+.otp-page .login-heading {
+    margin-bottom: 12px;
+}
+
+.otp-page .login-heading p {
+    color: #a3adb5;
+}
+
+.otp-target {
+    margin: 0 0 20px;
+    color: #2dd4bf;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.otp-inputs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.otp-page .otp-inputs input {
+    width: 100%;
+    height: 60px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 12px;
+    outline: none;
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    font: inherit;
+    font-size: 26px;
+    font-weight: 700;
+    text-align: center;
+    caret-color: #2dd4bf;
+    transition: border-color 160ms, box-shadow 160ms, background 160ms;
+}
+
+.otp-page .otp-inputs input.filled {
+    border-color: #14b8a6;
+    background: rgba(20, 184, 166, 0.1);
+}
+
+.otp-page .otp-inputs input:focus {
+    border-color: #2dd4bf;
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.18);
+}
+
+.otp-error {
+    margin: 0 0 12px;
+    text-align: center;
+}
+
+.otp-timer {
+    margin: 0 0 6px;
+    color: #ffffff;
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    font-variant-numeric: tabular-nums;
+}
+
+.otp-resend {
+    margin: 0 0 18px;
+    color: #a3adb5;
+    text-align: center;
+    font-size: 13px;
+}
+
+.otp-resend button,
+.otp-switch {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #2dd4bf;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 160ms;
+}
+
+.otp-resend button:hover:not(:disabled),
+.otp-switch:hover {
+    color: #99f6e4;
+    text-decoration: underline;
+}
+
+.otp-resend button:disabled {
+    color: rgba(163, 173, 181, 0.5);
+    cursor: not-allowed;
+}
+
+/* Compact card so the image does not cause overflow */
+.otp-page .login-form-panel {
+    padding: 24px 40px;
+}
+
+.otp-page .login-form-container {
+    padding: 24px 32px;
+}
+
+.otp-page .auth-switch {
+    margin-top: 14px;
+}
+
+@media (max-height: 820px) {
+    .otp-character img {
+        height: 130px;
+    }
+}
+
+@media (max-width: 600px) {
+    .otp-page .login-form-panel {
+        padding: 16px 16px 40px;
+    }
+
+    .otp-page .login-form-container {
+        padding: 22px 20px;
+    }
+
+    .otp-character img {
+        height: 120px;
+    }
+
+    .otp-inputs {
+        gap: 10px;
+    }
+
+    .otp-page .otp-inputs input {
+        height: 54px;
+        font-size: 22px;
+    }
+
+    .otp-target {
+        font-size: 16px;
+    }
+}

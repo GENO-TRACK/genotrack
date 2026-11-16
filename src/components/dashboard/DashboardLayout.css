@@ -1,0 +1,553 @@
+/* GenoTrack dashboard shell: slim icon rail + top bar (LTR and RTL) */
+
+.dash-shell {
+    position: relative;
+    min-height: 100vh;
+    background: #05080a;
+    color: #e6edf1;
+    font-family: inherit;
+    overflow-x: hidden;
+}
+
+.dash-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+/* ---------- Slim icon rail ---------- */
+.dash-dock {
+    position: fixed;
+    top: 12px;
+    bottom: 12px;
+    inset-inline-start: 8px;
+    z-index: 40;
+    width: 43px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 8px 3px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 22px;
+    background: rgba(10, 16, 18, 0.7);
+    backdrop-filter: blur(22px) saturate(140%);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    transition: width 220ms cubic-bezier(0.3, 0.8, 0.3, 1),
+        box-shadow 220ms;
+}
+
+.dash-dock:hover,
+.dash-dock:focus-within {
+    width: 210px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(45, 212, 191, 0.18);
+}
+
+.dock-logo {
+    display: grid;
+    place-items: center;
+    height: 44px;
+    flex-shrink: 0;
+}
+
+.dock-logo img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 10px rgba(45, 212, 191, 0.45));
+}
+
+.dock-nav {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+.dock-nav::-webkit-scrollbar {
+    display: none;
+}
+
+/* Each item is just an icon-size square until the rail is hovered */
+.dock-nav a,
+.dock-intake {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 44px;
+    flex-shrink: 0;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 14px;
+    color: #a3adb5;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 160ms, color 160ms, border-color 160ms;
+}
+
+.dock-ico {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+}
+
+.dock-label {
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity 180ms, transform 180ms;
+    pointer-events: none;
+}
+
+[dir="rtl"] .dock-label {
+    transform: translateX(6px);
+}
+
+.dash-dock:hover .dock-label,
+.dash-dock:focus-within .dock-label {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.dock-nav a:hover {
+    background: rgba(255, 255, 255, 0.07);
+    color: #ffffff;
+}
+
+.dock-nav a.active {
+    background: linear-gradient(90deg, rgba(20, 184, 166, 0.28), rgba(20, 184, 166, 0.08));
+    border-color: rgba(45, 212, 191, 0.4);
+    color: #2dd4bf;
+    box-shadow: 0 0 18px rgba(45, 212, 191, 0.18);
+}
+
+[dir="rtl"] .dock-nav a.active {
+    background: linear-gradient(270deg, rgba(20, 184, 166, 0.28), rgba(20, 184, 166, 0.08));
+}
+
+.dock-intake {
+    background: linear-gradient(135deg, #14b8a6, #0d8f87);
+    color: #04201d;
+    font-weight: 700;
+    box-shadow: 0 8px 24px rgba(20, 184, 166, 0.3);
+}
+
+.dock-intake:hover {
+    box-shadow: 0 12px 30px rgba(20, 184, 166, 0.45);
+}
+
+/* ---------- Main ---------- */
+.dash-main {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    /* 8 gap + 52 rail + 8 breathing room: content sits close to the rail */
+    margin-inline-start: 68px;
+    display: flex;
+    flex-direction: column;
+    transition: margin-inline-start 220ms cubic-bezier(0.3, 0.8, 0.3, 1);
+}
+
+/* Desktop only: when the rail expands, push the content so it never sits under the rail */
+@media (min-width: 761px) {
+
+    .dash-shell:has(.dash-dock:hover) .dash-main,
+    .dash-shell:has(.dash-dock:focus-within) .dash-main {
+        margin-inline-start: 226px;
+    }
+}
+
+.dash-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 12px 20px 0 0;
+    padding: 10px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    background: rgba(10, 16, 18, 0.62);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+}
+
+[dir="rtl"] .dash-topbar {
+    margin: 12px 0 0 20px;
+}
+
+.dash-search {
+    flex: 1;
+    min-width: 0;
+    max-width: 460px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 42px;
+    padding: 0 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #a3adb5;
+    transition: border-color 160ms, box-shadow 160ms;
+}
+
+.dash-search:focus-within {
+    border-color: #2dd4bf;
+    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.16);
+}
+
+.dash-search input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: #ffffff;
+    font: inherit;
+    font-size: 14px;
+}
+
+.dash-top-actions {
+    margin-inline-start: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dash-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    border: 1px solid rgba(45, 212, 191, 0.35);
+    border-radius: 999px;
+    background: rgba(20, 184, 166, 0.1);
+    color: #2dd4bf;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.dash-live i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #2dd4bf;
+    box-shadow: 0 0 10px #2dd4bf;
+    animation: dash-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes dash-pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.4;
+        transform: scale(0.7);
+    }
+}
+
+.dash-lang-btn {
+    height: 42px;
+    min-width: 54px;
+    padding: 0 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #2dd4bf;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color 160ms, background 160ms;
+}
+
+.dash-lang-btn:hover {
+    border-color: #2dd4bf;
+    background: rgba(45, 212, 191, 0.1);
+}
+
+.dash-icon-btn {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #e6edf1;
+    cursor: pointer;
+    transition: border-color 160ms, color 160ms;
+}
+
+.dash-icon-btn:hover {
+    border-color: #2dd4bf;
+    color: #2dd4bf;
+}
+
+.dash-icon-btn b {
+    position: absolute;
+    top: 9px;
+    inset-inline-end: 10px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #f87171;
+    box-shadow: 0 0 8px #f87171;
+}
+
+/* ---------- Profile menu ---------- */
+.dash-profile {
+    position: relative;
+}
+
+.dash-profile-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 42px;
+    padding: 0 12px 0 6px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #a3adb5;
+    font: inherit;
+    cursor: pointer;
+    transition: border-color 160ms;
+}
+
+[dir="rtl"] .dash-profile-btn {
+    padding: 0 6px 0 12px;
+}
+
+.dash-profile-btn:hover,
+.dash-profile-btn[aria-expanded="true"] {
+    border-color: rgba(45, 212, 191, 0.55);
+}
+
+.dash-avatar {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid rgba(45, 212, 191, 0.5);
+    border-radius: 50%;
+    background: rgba(45, 212, 191, 0.16);
+    color: #2dd4bf;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.dash-profile-text {
+    display: grid;
+    text-align: start;
+    line-height: 1.15;
+}
+
+.dash-profile-text strong {
+    color: #ffffff;
+    font-size: 13px;
+}
+
+.dash-profile-text small {
+    color: #2dd4bf;
+    font-size: 11px;
+}
+
+.dash-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    inset-inline-end: 0;
+    z-index: 50;
+    min-width: 220px;
+    display: grid;
+    gap: 2px;
+    padding: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 14px;
+    background: rgba(12, 18, 20, 0.96);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+.dash-menu button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 40px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #e6edf1;
+    font: inherit;
+    font-size: 14px;
+    text-align: start;
+    cursor: pointer;
+    transition: background 140ms, color 140ms;
+}
+
+.dash-menu button:hover {
+    background: rgba(255, 255, 255, 0.07);
+    color: #2dd4bf;
+}
+
+.dash-menu button.danger:hover {
+    background: rgba(248, 113, 113, 0.1);
+    color: #fca5a5;
+}
+
+/* Content hugs the rail: no extra start padding */
+.dash-content {
+    padding: 22px 20px 56px 0;
+}
+
+[dir="rtl"] .dash-content {
+    padding: 22px 0 56px 20px;
+}
+
+/* ---------- Language switch (Settings page) ---------- */
+.lang-switch {
+    display: inline-flex;
+    padding: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.lang-switch button {
+    min-width: 120px;
+    height: 42px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #a3adb5;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 160ms, color 160ms;
+}
+
+.lang-switch button.on {
+    background: linear-gradient(135deg, #14b8a6, #0d8f87);
+    color: #04201d;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1100px) {
+    .dash-profile-text {
+        display: none;
+    }
+
+    .dash-profile-btn,
+    [dir="rtl"] .dash-profile-btn {
+        padding: 0 8px 0 6px;
+    }
+}
+
+/* Phones & small tablets: rail becomes a bottom bar */
+@media (max-width: 760px) {
+    .dash-dock {
+        top: auto;
+        inset-inline: 12px;
+        bottom: 12px;
+        width: auto;
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+        padding: 8px;
+        border-radius: 20px;
+    }
+
+    .dash-dock:hover,
+    .dash-dock:focus-within {
+        width: auto;
+    }
+
+    .dock-logo,
+    .dock-intake {
+        display: none;
+    }
+
+    .dock-nav {
+        flex-direction: row;
+        flex: 1;
+        gap: 2px;
+        padding-top: 0;
+        border-top: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+
+    .dock-nav a {
+        flex: 1 0 auto;
+        justify-content: center;
+        min-width: 44px;
+    }
+
+    .dock-label {
+        display: none;
+    }
+
+    .dash-main {
+        margin-inline-start: 0;
+    }
+
+    .dash-topbar,
+    [dir="rtl"] .dash-topbar {
+        margin: 12px 12px 0;
+        gap: 10px;
+        padding: 8px 10px;
+    }
+
+    .dash-top-actions {
+        gap: 8px;
+    }
+
+    .dash-live,
+    .dash-profile-text {
+        display: none;
+    }
+
+    .dash-content,
+    [dir="rtl"] .dash-content {
+        padding: 18px 12px 110px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .dash-dock,
+    .dock-label,
+    .dash-main,
+    .dash-live i {
+        transition: none;
+        animation: none;
+    }
+}

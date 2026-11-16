@@ -1,0 +1,569 @@
+/* DNA Comparison: hero probability, specimen cards, alignment grid */
+
+.cp-label {
+    color: #6b7780;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+[dir="rtl"] .cp-label {
+    letter-spacing: 0;
+}
+
+.cp-engine {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cp-engine i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #2dd4bf;
+    box-shadow: 0 0 10px #2dd4bf;
+    animation: dash-pulse 1.8s ease-in-out infinite;
+}
+
+/* ---------- Match probability ---------- */
+.cp-prob {
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    min-width: 220px;
+    padding: 18px 28px;
+    border: 1px solid rgba(45, 212, 191, 0.4);
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(20, 184, 166, 0.2), rgba(20, 184, 166, 0.04));
+    box-shadow: 0 0 40px rgba(20, 184, 166, 0.15);
+}
+
+.cp-prob strong {
+    color: #2dd4bf;
+    font-size: 56px;
+    font-weight: 800;
+    line-height: 1;
+    text-shadow: 0 0 24px rgba(45, 212, 191, 0.45);
+}
+
+.cp-prob strong small {
+    margin-inline-start: 4px;
+    font-size: 26px;
+}
+
+.cp-verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: rgba(45, 212, 191, 0.16);
+    color: #2dd4bf;
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+[dir="rtl"] .cp-verified {
+    letter-spacing: 0;
+}
+
+/* ---------- Specimen / score row ---------- */
+.cp-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr) minmax(0, 1fr);
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.cp-grid>* {
+    min-width: 0;
+}
+
+.cp-spec {
+    display: grid;
+    align-content: start;
+    gap: 16px;
+}
+
+.cp-spec-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.cp-spec-head>div {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+}
+
+.cp-spec-head small {
+    color: #6b7780;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+}
+
+[dir="rtl"] .cp-spec-head small {
+    letter-spacing: 0;
+}
+
+.cp-spec-head h3 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.cp-spec-head code {
+    color: #2dd4bf;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px;
+}
+
+.cp-spec-ico {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+}
+
+.cp-spec-ico.teal {
+    background: rgba(45, 212, 191, 0.16);
+    color: #2dd4bf;
+}
+
+.cp-spec-ico.blue {
+    background: rgba(96, 165, 250, 0.16);
+    color: #60a5fa;
+}
+
+.cp-ok {
+    flex-shrink: 0;
+    color: #2dd4bf;
+}
+
+.cp-facts {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    padding: 14px 0;
+    border-block: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cp-facts>div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.cp-facts dt {
+    color: #6b7780;
+    font-size: 12.5px;
+}
+
+.cp-facts dd {
+    margin: 0;
+    color: #e6edf1;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: end;
+}
+
+.cp-seq {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px;
+}
+
+.cp-seq b {
+    color: #ffffff;
+    letter-spacing: 3px;
+}
+
+.cp-seq span {
+    color: #6b7780;
+}
+
+.cp-seq em {
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(45, 212, 191, 0.14);
+    color: #2dd4bf;
+    font-family: inherit;
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 700;
+}
+
+/* ---------- Sentinel score ---------- */
+.cp-score {
+    display: grid;
+    align-content: start;
+    justify-items: center;
+    gap: 8px;
+    text-align: center;
+    border-color: rgba(45, 212, 191, 0.3) !important;
+}
+
+.cp-score-ico {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: rgba(45, 212, 191, 0.14);
+    color: #2dd4bf;
+    box-shadow: 0 0 24px rgba(45, 212, 191, 0.25);
+}
+
+.cp-score h3 {
+    margin: 0;
+    color: #a3adb5;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.cp-score>strong {
+    color: #ffffff;
+    font-size: 40px;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.cp-score>p {
+    margin: 0;
+    color: #6b7780;
+    font-size: 12.5px;
+}
+
+.cp-score>p b {
+    color: #2dd4bf;
+}
+
+.cp-alleles {
+    display: grid;
+    gap: 12px;
+    width: 100%;
+    margin-top: 12px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    text-align: start;
+}
+
+.cp-allele {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr) 42px;
+    align-items: center;
+    gap: 10px;
+    color: #a3adb5;
+    font-size: 12.5px;
+}
+
+.cp-allele b {
+    color: #ffffff;
+    text-align: end;
+}
+
+.cp-bar {
+    height: 7px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.cp-bar i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #14b8a6, #2dd4bf);
+    box-shadow: 0 0 10px rgba(45, 212, 191, 0.5);
+}
+
+/* ---------- Alignment ---------- */
+.cp-align {
+    display: grid;
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.cp-align-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.cp-align-head h3 {
+    margin: 0 0 4px;
+    color: #ffffff;
+    font-size: 19px;
+    font-weight: 800;
+}
+
+.cp-align-head p {
+    margin: 0;
+    color: #a3adb5;
+    font-size: 13px;
+}
+
+.cp-align-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.cp-align-actions .sf-btn {
+    height: 38px;
+    padding: 0 16px;
+    font-size: 13px;
+}
+
+.cp-on {
+    border-color: rgba(45, 212, 191, 0.55) !important;
+    background: rgba(45, 212, 191, 0.16) !important;
+    color: #2dd4bf !important;
+}
+
+.cp-loci {
+    display: grid;
+    gap: 14px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.cp-locus {
+    display: grid;
+    gap: 8px;
+    min-width: max-content;
+}
+
+.cp-locus-id {
+    color: #6b7780;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+}
+
+.cp-bases {
+    display: flex;
+    gap: 6px;
+}
+
+.cp-base {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 44px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 15px;
+    font-weight: 800;
+    transition: background 160ms, border-color 160ms;
+}
+
+.cp-base.full {
+    border-color: rgba(45, 212, 191, 0.3);
+    background: rgba(45, 212, 191, 0.12);
+    color: #2dd4bf;
+}
+
+.cp-base.mut {
+    border-color: rgba(248, 113, 113, 0.5);
+    background: rgba(248, 113, 113, 0.18);
+    color: #f87171;
+    box-shadow: 0 0 14px rgba(248, 113, 113, 0.25);
+}
+
+/* Heatmap view: solid colour cells, no letters */
+.cp-loci.heat .cp-base.full {
+    background: rgba(45, 212, 191, 0.55);
+    border-color: transparent;
+}
+
+.cp-loci.heat .cp-base.mut {
+    background: rgba(248, 113, 113, 0.85);
+    border-color: transparent;
+}
+
+.cp-legend {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: #a3adb5;
+    font-size: 12px;
+}
+
+.cp-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cp-legend i {
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+}
+
+.cp-legend i.full {
+    background: #2dd4bf;
+}
+
+.cp-legend i.mut {
+    background: #f87171;
+}
+
+.cp-legend i.inc {
+    background: #fbbf24;
+}
+
+/* ---------- Verdict ---------- */
+.cp-verdict {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
+    border-color: rgba(45, 212, 191, 0.35) !important;
+    background: linear-gradient(135deg, rgba(20, 184, 166, 0.14), rgba(20, 184, 166, 0.03)) !important;
+}
+
+.cp-verdict-text {
+    display: grid;
+    gap: 6px;
+}
+
+.cp-verdict-text strong {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #2dd4bf;
+    font-size: 26px;
+    font-weight: 800;
+}
+
+.cp-flagged,
+.cp-signed {
+    font-size: 12.5px;
+    font-style: normal;
+    font-weight: 600;
+}
+
+.cp-flagged {
+    color: #fbbf24;
+}
+
+.cp-signed {
+    color: #2dd4bf;
+}
+
+.cp-verdict-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.cp-verdict-actions .sf-btn[aria-pressed="true"] {
+    border-color: rgba(251, 191, 36, 0.55);
+    color: #fbbf24;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1280px) {
+    .cp-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .cp-score {
+        grid-column: 1 / -1;
+        order: -1;
+    }
+}
+
+/* Match probability: fit fully on phones */
+@media (max-width: 900px) {
+    .cp-prob {
+        box-sizing: border-box;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        padding: 16px 18px;
+        justify-self: stretch;
+    }
+}
+
+@media (max-width: 600px) {
+    .cp-prob strong {
+        font-size: 40px;
+    }
+
+    .cp-prob strong small {
+        font-size: 20px;
+    }
+
+    .cp-verified {
+        font-size: 10px;
+        padding: 4px 10px;
+    }
+}
+
+@media (max-width: 760px) {
+    .cp-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cp-score {
+        order: 0;
+    }
+}
+
+@media (max-width: 600px) {
+    .cp-prob strong {
+        font-size: 46px;
+    }
+
+    .cp-base {
+        width: 32px;
+        height: 38px;
+        font-size: 13px;
+    }
+
+    .cp-verdict-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .cp-verdict-actions .sf-btn {
+        justify-content: center;
+    }
+
+    .cp-align-actions {
+        width: 100%;
+    }
+
+    .cp-align-actions .sf-btn {
+        flex: 1;
+        justify-content: center;
+    }
+}

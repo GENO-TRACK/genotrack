@@ -1,0 +1,754 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+.login-page,
+.login-page * {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #05080a;
+}
+
+/* ---------- Page: one full-screen dark canvas ---------- */
+.login-page {
+    position: relative;
+    isolation: isolate;
+    min-height: 100vh;
+    min-height: 100svh;
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    font-family: "Inter", sans-serif;
+    color: #ffffff;
+    overflow: hidden;
+    background:
+        radial-gradient(ellipse 60% 50% at 100% 0%,
+            rgba(20, 184, 166, 0.22) 0%,
+            rgba(20, 184, 166, 0.08) 45%,
+            transparent 75%),
+        radial-gradient(ellipse 50% 45% at 0% 100%,
+            rgba(20, 184, 166, 0.1) 0%,
+            transparent 70%),
+        #05080a;
+}
+
+/* ---------- Background layers (grid + orbs + DNA) ---------- */
+.login-bg {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+/* Grid squares across the whole page */
+.login-bg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+    -webkit-mask-image: radial-gradient(ellipse 90% 90% at 50% 50%, #000 30%, transparent 100%);
+    mask-image: radial-gradient(ellipse 90% 90% at 50% 50%, #000 30%, transparent 100%);
+}
+
+/* Soft glowing orbs behind the helix */
+.bg-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    pointer-events: none;
+}
+
+.bg-orb-a {
+    top: -10%;
+    left: 38%;
+    width: 480px;
+    height: 480px;
+    background: rgba(20, 184, 166, 0.28);
+}
+
+.bg-orb-b {
+    bottom: -15%;
+    left: 8%;
+    width: 420px;
+    height: 420px;
+    background: rgba(13, 148, 136, 0.2);
+}
+
+/* DNA helix: tall, glowing, behind everything */
+.login-bg .dna-helix {
+    position: absolute;
+    top: -5%;
+    left: 48%;
+    width: min(46vw, 560px);
+    height: 110%;
+    transform: translateX(-50%) rotate(8deg);
+    opacity: 0.9;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 18%, #000 82%, transparent 100%);
+    mask-image: linear-gradient(180deg, transparent 0%, #000 18%, #000 82%, transparent 100%);
+    animation: helix-float 9s ease-in-out infinite;
+}
+
+@keyframes helix-float {
+
+    0%,
+    100% {
+        transform: translateX(-50%) rotate(8deg) translateY(0);
+    }
+
+    50% {
+        transform: translateX(-50%) rotate(8deg) translateY(-14px);
+    }
+}
+
+/* ---------- Left: brand content (no panel background) ---------- */
+.brand-logo {
+    display: block;
+    height: 40px;
+    width: auto;
+}
+
+.login-brand {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 48px 64px;
+    background: transparent;
+}
+
+.brand-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    width: fit-content;
+    color: inherit;
+    text-decoration: none;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+
+.brand-content {
+    max-width: 550px;
+    padding: 76px 0;
+}
+
+.brand-tag {
+    display: inline-block;
+    padding: 9px 12px;
+    border-radius: 5px;
+    color: #2dd4bf;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.brand-content h1 {
+    margin: 26px 0 22px;
+    font-size: clamp(36px, 4vw, 60px);
+    line-height: 1.12;
+    letter-spacing: -2px;
+}
+
+.brand-content h1 span {
+    color: #2dd4bf;
+}
+
+.brand-content>p {
+    max-width: 440px;
+    margin: 0;
+    color: #a3adb5;
+    font-size: 14px;
+    line-height: 1.9;
+}
+
+.brand-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    margin-top: 56px;
+    padding-top: 28px;
+}
+
+.brand-features div {
+    display: grid;
+    gap: 10px;
+}
+
+.brand-features strong {
+    font-size: 21px;
+    font-weight: 600;
+}
+
+.brand-features span,
+.brand-footer {
+    color: #2dd4bf;
+    font-size: 9px;
+    letter-spacing: 1.4px;
+}
+
+.brand-footer {
+    margin: 0;
+}
+
+/* ---------- Right: glass form card ---------- */
+.login-form-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 56px 40px;
+    background: transparent;
+}
+
+.login-form-container {
+    width: 100%;
+    max-width: 410px;
+    padding: 40px 36px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+    backdrop-filter: blur(22px) saturate(140%);
+}
+
+/* Fallback for browsers without backdrop-filter */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .login-form-container {
+        background: rgba(12, 22, 26, 0.92);
+    }
+}
+
+.login-heading {
+    margin-bottom: 36px;
+}
+
+.login-heading h2 {
+    margin: 0 0 10px;
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    color: #ffffff;
+}
+
+.login-heading p {
+    margin: 0;
+    color: #2dd4bf;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.form-field {
+    margin-bottom: 22px;
+}
+
+.form-field>label {
+    display: block;
+    margin-bottom: 10px;
+    color: #a3adb5;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+}
+
+.form-field input {
+    width: 100%;
+    height: 54px;
+    padding: 0 16px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 10px;
+    outline: none;
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    font: inherit;
+    font-size: 14px;
+    transition: border-color 160ms, box-shadow 160ms, background 160ms;
+}
+
+.form-field input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.form-field input:focus {
+    border-color: #2dd4bf;
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.18);
+}
+
+/* Keep browser autofill from turning the field white */
+.form-field input:-webkit-autofill {
+    -webkit-text-fill-color: #ffffff;
+    transition: background-color 9999s ease-in-out 0s;
+    box-shadow: 0 0 0 1000px rgba(20, 30, 34, 0.9) inset;
+}
+
+.password-field {
+    position: relative;
+}
+
+.password-field input {
+    padding-left: 16px;
+    padding-right: 72px;
+}
+
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    left: auto;
+    right: 12px;
+    transform: translateY(-50%);
+    padding: 6px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: #2dd4bf;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.trust-terminal {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: fit-content;
+    margin: 6px 0 28px;
+    color: #a3adb5;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.trust-terminal input {
+    width: 15px;
+    height: 15px;
+    margin: 0;
+    accent-color: #14b8a6;
+}
+
+.login-submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    width: 100%;
+    min-height: 54px;
+    margin-top: 8px;
+    border: 0;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #14b8a6, #0d8f87);
+    color: #ffffff;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.6px;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(20, 184, 166, 0.28);
+    transition: filter 160ms, transform 160ms;
+}
+
+.login-submit:hover:not(:disabled) {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+}
+
+.login-submit:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+
+.login-error {
+    margin: 0 0 18px;
+    color: #ff8a80;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.access-notice {
+    margin: 28px 0 0;
+    color: #a3adb5;
+    text-align: center;
+    font-size: 11px;
+    line-height: 1.7;
+}
+
+.login-page button:focus-visible,
+.login-page a:focus-visible {
+    outline: 3px solid #2dd4bf;
+    outline-offset: 4px;
+}
+
+/* ---------- Switch between Sign In / Sign Up + legal links ---------- */
+.auth-switch {
+    margin: 22px 0 0;
+    color: #a3adb5;
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.auth-switch a,
+.access-notice a {
+    color: #2dd4bf;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 160ms;
+}
+
+.auth-switch a:hover,
+.access-notice a:hover {
+    color: #99f6e4;
+    text-decoration: underline;
+}
+
+/* On short wide screens let the card scroll instead of clipping */
+@media (max-height: 820px) and (min-width: 901px) {
+    .login-form-panel {
+        align-items: flex-start;
+        overflow-y: auto;
+    }
+}
+
+/* =========================================================
+   Responsive
+   ========================================================= */
+
+/* ---------- Large desktops ---------- */
+@media (min-width: 1600px) {
+    .login-brand {
+        padding: 64px 96px;
+    }
+
+    .brand-content {
+        max-width: 680px;
+    }
+
+    .login-form-container {
+        max-width: 460px;
+    }
+}
+
+/* ---------- Laptops / small desktops ---------- */
+@media (max-width: 1200px) {
+    .login-page {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .login-brand {
+        padding: 40px 44px;
+    }
+
+    .brand-content {
+        padding: 56px 0;
+    }
+}
+
+/* ---------- Tablets ---------- */
+@media (max-width: 900px) {
+    .login-page {
+        grid-template-columns: 1fr;
+    }
+
+    .login-brand {
+        padding: 32px 36px 8px;
+    }
+
+    .brand-content {
+        padding: 36px 0 16px;
+        max-width: 100%;
+    }
+
+    .brand-content h1 {
+        font-size: clamp(32px, 6vw, 48px);
+    }
+
+    .brand-features {
+        gap: 24px;
+        margin-top: 28px;
+        padding-top: 16px;
+    }
+
+    .login-bg .dna-helix {
+        left: 50%;
+        width: 70vw;
+        opacity: 0.55;
+    }
+
+    .login-form-panel {
+        padding: 24px 32px 64px;
+    }
+}
+
+/* ---------- Phones ---------- */
+@media (max-width: 600px) {
+    .login-brand {
+        padding: 24px 20px 0;
+    }
+
+    .brand-logo {
+        height: 32px;
+    }
+
+    .brand-content {
+        padding: 24px 0 8px;
+    }
+
+    .brand-content h1 {
+        font-size: 32px;
+        letter-spacing: -1px;
+    }
+
+    .brand-content>p {
+        font-size: 13px;
+        line-height: 1.7;
+    }
+
+    .brand-features,
+    .brand-footer {
+        display: none;
+    }
+
+    .login-bg .dna-helix {
+        width: 120vw;
+        opacity: 0.4;
+    }
+
+    .login-bg::before {
+        background-size: 32px 32px;
+    }
+
+    .login-form-panel {
+        padding: 16px 16px 40px;
+    }
+
+    .login-form-container {
+        padding: 28px 20px;
+        border-radius: 16px;
+    }
+
+    .login-heading {
+        margin-bottom: 26px;
+    }
+
+    .login-heading h2 {
+        font-size: 28px;
+    }
+
+    .form-field input,
+    .login-submit {
+        height: 50px;
+        min-height: 50px;
+    }
+
+    /* 16px stops iOS Safari zooming in when an input is focused */
+    .form-field input {
+        font-size: 16px;
+    }
+}
+
+/* ---------- Very small phones ---------- */
+@media (max-width: 360px) {
+    .login-brand {
+        padding: 20px 16px 0;
+    }
+
+    .brand-content h1 {
+        font-size: 28px;
+    }
+
+    .login-form-container {
+        padding: 22px 16px;
+    }
+}
+
+/* ---------- Short landscape screens ---------- */
+@media (max-height: 560px) and (orientation: landscape) {
+    .login-page {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .brand-content {
+        padding: 16px 0;
+    }
+
+    .brand-features,
+    .brand-footer {
+        display: none;
+    }
+
+    .login-form-panel {
+        align-items: flex-start;
+        padding: 24px;
+        overflow-y: auto;
+    }
+}
+
+/* =========================================================
+   Auth pages: language switch + RTL
+   ========================================================= */
+
+.auth-lang {
+    position: absolute;
+    top: 18px;
+    inset-inline-end: 18px;
+    z-index: 20;
+    height: 38px;
+    padding: 0 16px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    background: rgba(8, 14, 17, 0.7);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    color: #e5eaee;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color 150ms, color 150ms;
+}
+
+.auth-lang:hover {
+    border-color: #2dd4bf;
+    color: #2dd4bf;
+}
+
+/* Typed values stay left-to-right */
+.login-page input[dir="ltr"] {
+    text-align: start;
+}
+
+[dir="rtl"] .login-page input[dir="ltr"]::placeholder {
+    text-align: right;
+    direction: rtl;
+}
+
+/* OTP boxes keep their order in Arabic */
+.otp-inputs {
+    direction: ltr;
+}
+
+/* Letter-spacing and uppercase break Arabic letters */
+[dir="rtl"] .brand-tag,
+[dir="rtl"] .brand-features span,
+[dir="rtl"] .brand-footer,
+[dir="rtl"] .login-submit,
+[dir="rtl"] .brand-content h1,
+[dir="rtl"] .login-heading h2,
+[dir="rtl"] .form-field>label {
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+
+/* ---------- Respect reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+    }
+
+    .login-bg .dna-helix {
+        animation: none;
+    }
+}
+
+/* =========================================================
+   Signup only: compact card + text higher up
+   (needs <main className="login-page signup-page"> in Signup.jsx)
+   ========================================================= */
+
+.signup-page .login-form-panel {
+    padding: 24px 40px;
+}
+
+.signup-page .login-form-container {
+    padding: 28px 32px;
+}
+
+.signup-page .login-heading {
+    margin-bottom: 20px;
+}
+
+.signup-page .login-heading h2 {
+    margin: 0 0 6px;
+    font-size: 28px;
+}
+
+.signup-page .form-field {
+    margin-bottom: 12px;
+}
+
+.signup-page .form-field>label {
+    margin-bottom: 6px;
+}
+
+.signup-page .form-field input {
+    height: 46px;
+}
+
+.signup-page .login-submit {
+    min-height: 48px;
+    margin-top: 4px;
+}
+
+.signup-page .login-error {
+    margin: 0 0 14px;
+}
+
+.signup-page .auth-switch {
+    margin-top: 14px;
+}
+
+.signup-page .access-notice {
+    margin-top: 10px;
+}
+
+/* Keep the compact Signup sizes on tablets and phones too */
+@media (max-width: 1200px) {
+    .signup-page .brand-content {
+        padding: 24px 0 0;
+    }
+}
+
+@media (max-width: 900px) {
+    .signup-page .brand-content {
+        padding: 24px 0 16px;
+    }
+
+    .signup-page .login-form-panel {
+        padding: 24px 32px 64px;
+    }
+}
+
+@media (max-width: 600px) {
+    .signup-page .brand-content {
+        padding: 16px 0 8px;
+    }
+
+    .signup-page .login-form-panel {
+        padding: 16px 16px 40px;
+    }
+
+    .signup-page .login-form-container {
+        padding: 24px 20px;
+    }
+
+    .signup-page .login-heading {
+        margin-bottom: 20px;
+    }
+
+    .signup-page .login-heading h2 {
+        font-size: 26px;
+    }
+
+    .signup-page .form-field input,
+    .signup-page .login-submit {
+        height: 48px;
+        min-height: 48px;
+    }
+}
