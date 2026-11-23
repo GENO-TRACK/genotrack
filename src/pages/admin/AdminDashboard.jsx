@@ -1,78 +1,55 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
-import { useLanguage } from "../../i18n/LanguageContext";
+import { useLanguage } from "../../i18n/useLanguage";
+import { listLabSamples } from "../../auth/lab";
+import { listCases } from "../../auth/police";
 import "./AdminDashboard.css";
+import "./SamplesPage.css";
+import "../lab/Lab.css";
 
-// ---- Demo data: replace with API calls later ----
-const STATS = [
-  { key: "total", value: "2,450", badge: "+12%", tone: "teal" },
-  { key: "matches", value: "185", badge: "ad.badge.active", tone: "teal" },
-  { key: "pending", value: "42", badge: "ad.badge.priority", tone: "amber" },
-  { key: "error", value: "0.02%", badge: "ad.badge.healthy", tone: "teal" },
-];
+// The admin dashboard reads the same demo data as the lab and the police:
+//   - samples  -> listLabSamples (src/auth/lab.js)
+//   - cases    -> listCases      (src/auth/police.js)
+// Nothing here is typed in by hand, so every number matches the other pages.
 
-const ACTIVITY = [
-  { n: 1, tone: "teal" },
-  { n: 2, tone: "blue" },
-  { n: 3, tone: "teal" },
-  { n: 4, tone: "amber" },
-];
+// Case statuses that count as a match.
+const MATCH_STATUSES = ["matched", "resolved"];
 
-const TREND = [
-  { week: 1, value: 12 },
-  { week: 2, value: 18 },
-  { week: 3, value: 15 },
-  { week: 4, value: 24 },
-];
+// Latest lab/case actions shown in Recent Activity.
+const ACTIVITY_LIMIT = 4;
 
-const CASES = [
-  {
-    id: "GT-99210-AX",
-    name: "Jonathan Doe",
-    status: "matched",
-    date: "Oct 24, 2023",
-  },
-  {
-    id: "GT-99211-BR",
-    name: "Sarah Weaver",
-    status: "analyzed",
-    date: "Oct 23, 2023",
-  },
-  {
-    id: "GT-99215-CX",
-    name: "Marcus Kane",
-    status: "pending",
-    date: "Oct 23, 2023",
-  },
-  {
-    id: "GT-99218-DY",
-    name: "Elena Luvic",
-    status: "matched",
-    date: "Oct 22, 2023",
-  },
-];
+const shortDate = (iso) => (iso ? iso.slice(0, 10) : "");
 
-const initials = (name) =>
-  name
-    .split(" ")
-    .map((p) => p[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+// Which "week bucket" an ISO date falls in, counted back from the newest sample.
+function buildTrend(samples) {
+  if (!samples.length) return [];
+  const DAY = 24 * 60 * 60 * 1000;
+  const times = samples.map((s) => new Date(s.receivedAt).getTime());
+  const newest = Math.max(...times);
+  const buckets = [0, 0, 0, 0];
+  times.forEach((tm) => {
+    const weeksBack = Math.floor((newest - tm) / (7 * DAY));
+    if (weeksBack >= 0 && weeksBack < 4) buckets[3 - weeksBack] += 1;
+  });
+  return buckets.map((value, i) => ({ week: i + 1, value }));
+}
 
-function TrendChart() {
+function TrendChart({ data }) {
   const { t } = useLanguage();
   const W = 560;
   const H = 220;
   const pad = { l: 36, r: 16, t: 16, b: 34 };
-  const max = 30;
-  const stepX = (W - pad.l - pad.r) / (TREND.length - 1);
+  const top = Math.max(4, ...data.map((d) => d.value));
+  const max = Math.ceil(top / 4) * 4;
+  const stepX = (W - pad.l - pad.r) / (data.length - 1 || 1);
   const y = (v) => pad.t + (1 - v / max) * (H - pad.t - pad.b);
-  const points = TREND.map((d, i) => [pad.l + i * stepX, y(d.value)]);
+  const points = data.map((d, i) => [pad.l + i * stepX, y(d.value)]);
   const line = points
     .map((p, i) => `${i ? "L" : "M"}${p[0]},${p[1]}`)
     .join(" ");
   const area = `${line} L${points[points.length - 1][0]},${H - pad.b} L${points[0][0]},${H - pad.b} Z`;
+  const ticks = [0, max / 4, max / 2, (max * 3) / 4, max];
 
   return (
     <svg
@@ -96,7 +73,7 @@ function TrendChart() {
         </filter>
       </defs>
 
-      {[0, 10, 20, 30].map((v) => (
+      {ticks.map((v) => (
         <g key={v}>
           <line
             x1={pad.l}
@@ -129,7 +106,7 @@ function TrendChart() {
       />
 
       {points.map((p, i) => (
-        <g key={TREND[i].week}>
+        <g key={data[i].week}>
           <circle
             cx={p[0]}
             cy={p[1]}
@@ -146,7 +123,7 @@ function TrendChart() {
             fontSize="12"
             fontWeight="700"
           >
-            {TREND[i].value}
+            {data[i].value}
           </text>
           <text
             x={p[0]}
@@ -155,7 +132,7 @@ function TrendChart() {
             fill="#a3adb5"
             fontSize="11"
           >
-            {t("ad.week")} {String(TREND[i].week).padStart(2, "0")}
+            {t("ad.week")} {String(data[i].week).padStart(2, "0")}
           </text>
         </g>
       ))}
@@ -164,10 +141,112 @@ function TrendChart() {
 }
 
 export default function AdminDashboard() {
-  const { t, isRtl } = useLanguage();
-  const efficiency = 82;
+  const { t, lang } = useLanguage();
+  const [samples, setSamples] = useState([]);
+  const [cases, setCases] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    Promise.all([listLabSamples(), listCases()]).then(([s, c]) => {
+      if (!alive) return;
+      setSamples(s);
+      setCases(c);
+      setLoading(false);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const hospitalName = (s) =>
+    lang === "ar" && s.hospitalAr ? s.hospitalAr : s.hospital;
+
+  const numbers = useMemo(() => {
+    const total = samples.length;
+    const done = samples.filter((s) => s.status === "done").length;
+    const pending = samples.filter(
+      (s) => s.status === "received" || s.status === "sequencing",
+    ).length;
+    const flagged = samples.filter((s) => s.flagged).length;
+    const matches = cases.filter((c) =>
+      MATCH_STATUSES.includes(c.status),
+    ).length;
+    const efficiency = total ? Math.round((done / total) * 100) : 0;
+    return { total, done, pending, flagged, matches, efficiency };
+  }, [samples, cases]);
+
+  const trend = useMemo(() => buildTrend(samples), [samples]);
+
+  // Latest actions across the lab (sample history) and the police (case log).
+  const activity = useMemo(() => {
+    const out = [];
+    samples.forEach((s) => {
+      out.push({
+        key: `rec-${s.id}`,
+        kind: "received",
+        ref: s.id,
+        at: s.receivedAt,
+        tone: "blue",
+      });
+      s.history.forEach((h, i) => {
+        out.push({
+          key: `${s.id}-${h.type}-${h.at}-${i}`,
+          kind: h.type,
+          ref: s.id,
+          at: h.at,
+          tone: h.type === "flagged" ? "amber" : "teal",
+        });
+      });
+    });
+    cases.forEach((c) => {
+      c.log.forEach((l, i) => {
+        if (l.type !== "searched" && l.type !== "confirmed") return;
+        out.push({
+          key: `${c.id}-${l.type}-${l.at}-${i}`,
+          kind: l.type === "confirmed" ? "caseConfirmed" : "caseSearched",
+          ref: c.id,
+          at: l.at,
+          tone: l.type === "confirmed" ? "teal" : "blue",
+        });
+      });
+    });
+    return out
+      .sort((a, b) => (a.at < b.at ? 1 : -1))
+      .slice(0, ACTIVITY_LIMIT);
+  }, [samples, cases]);
+
+  const recent = samples.slice(0, 4);
+
   const R = 52;
   const C = 2 * Math.PI * R;
+
+  const STATS = [
+    {
+      key: "total",
+      value: numbers.total,
+      badge: `${numbers.done} ${t("ad.badge.done")}`,
+      tone: "teal",
+    },
+    {
+      key: "matches",
+      value: numbers.matches,
+      badge: "ad.badge.active",
+      tone: "teal",
+    },
+    {
+      key: "pending",
+      value: numbers.pending,
+      badge: "ad.badge.priority",
+      tone: "amber",
+    },
+    {
+      key: "error",
+      value: numbers.flagged,
+      badge: numbers.flagged ? "ad.badge.flagged" : "ad.badge.healthy",
+      tone: numbers.flagged ? "amber" : "teal",
+    },
+  ];
 
   return (
     <DashboardLayout role="admin">
@@ -195,7 +274,7 @@ export default function AdminDashboard() {
                 {s.badge.startsWith("ad.") ? t(s.badge) : s.badge}
               </em>
             </div>
-            <strong>{s.value}</strong>
+            <strong>{loading ? "…" : s.value}</strong>
             <small>{t(`ad.stat.${s.key}.sub`)}</small>
           </article>
         ))}
@@ -209,32 +288,34 @@ export default function AdminDashboard() {
               <h3>{t("ad.trend.title")}</h3>
               <small>{t("ad.trend.sub")}</small>
             </div>
-            <div className="ad-tabs" role="tablist">
-              <button type="button" className="on">
-                {t("ad.trend.30d")}
-              </button>
-              <button type="button">{t("ad.trend.6m")}</button>
-            </div>
           </div>
-          <TrendChart />
+          {trend.length ? (
+            <TrendChart data={trend} />
+          ) : (
+            <p className="ps-hint">{t("ad.empty")}</p>
+          )}
         </article>
 
         <article className="ad-card">
           <div className="ad-card-head">
             <h3>{t("ad.activity.title")}</h3>
           </div>
-          <ul className="ad-activity">
-            {ACTIVITY.map((a) => (
-              <li key={a.n}>
-                <span className={`ad-dot ${a.tone}`} />
-                <div>
-                  <strong>{t(`ad.act${a.n}.title`)}</strong>
-                  <small>{t(`ad.act${a.n}.meta`)}</small>
-                </div>
-                <time>{t(`ad.act${a.n}.time`)}</time>
-              </li>
-            ))}
-          </ul>
+          {activity.length ? (
+            <ul className="ad-activity">
+              {activity.map((a) => (
+                <li key={a.key}>
+                  <span className={`ad-dot ${a.tone}`} />
+                  <div>
+                    <strong>{t(`ad.act.${a.kind}`)}</strong>
+                    <small dir="ltr">{a.ref}</small>
+                  </div>
+                  <time dir="ltr">{shortDate(a.at)}</time>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="ps-hint">{t("ad.empty")}</p>
+          )}
         </article>
       </section>
 
@@ -248,7 +329,7 @@ export default function AdminDashboard() {
             <svg
               viewBox="0 0 140 140"
               className="ad-ring"
-              aria-label={`${t("ad.through.eff")} ${efficiency}%`}
+              aria-label={`${t("ad.through.eff")} ${numbers.efficiency}%`}
             >
               <circle
                 cx="70"
@@ -267,7 +348,7 @@ export default function AdminDashboard() {
                 strokeWidth="12"
                 strokeLinecap="round"
                 strokeDasharray={C}
-                strokeDashoffset={C * (1 - efficiency / 100)}
+                strokeDashoffset={C * (1 - numbers.efficiency / 100)}
                 transform="rotate(-90 70 70)"
               />
               <text
@@ -278,7 +359,7 @@ export default function AdminDashboard() {
                 fontSize="26"
                 fontWeight="800"
               >
-                {efficiency}%
+                {numbers.efficiency}%
               </text>
               <text
                 x="70"
@@ -294,12 +375,12 @@ export default function AdminDashboard() {
           </div>
           <div className="ad-mini">
             <div>
-              <small>{t("ad.through.avg")}</small>
-              <strong>{isRtl ? "4.2 س" : "4.2h"}</strong>
+              <small>{t("ad.through.done")}</small>
+              <strong>{numbers.done}</strong>
             </div>
             <div>
               <small>{t("ad.through.err")}</small>
-              <strong>0.02%</strong>
+              <strong>{numbers.flagged}</strong>
             </div>
           </div>
         </article>
@@ -343,7 +424,7 @@ export default function AdminDashboard() {
         </article>
       </section>
 
-      {/* Cases table */}
+      {/* Latest samples table (no patient names: the lab works on samples) */}
       <section className="ad-card ad-cases">
         <div className="ad-card-head">
           <h3>{t("ad.cases.title")}</h3>
@@ -357,38 +438,32 @@ export default function AdminDashboard() {
             <thead>
               <tr>
                 <th>{t("ad.col.id")}</th>
-                <th>{t("ad.col.subject")}</th>
+                <th>{t("ad.col.hospital")}</th>
                 <th>{t("ad.col.status")}</th>
                 <th>{t("ad.col.date")}</th>
-                <th aria-label="Actions" />
               </tr>
             </thead>
             <tbody>
-              {CASES.map((c) => (
-                <tr key={c.id}>
+              {recent.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="sm-empty">
+                    {loading ? "…" : t("ad.empty")}
+                  </td>
+                </tr>
+              )}
+              {recent.map((s) => (
+                <tr key={s.id}>
                   <td className="mono" dir="ltr">
-                    {c.id}
+                    {s.id}
                   </td>
+                  <td>{hospitalName(s)}</td>
                   <td>
-                    <span className="ad-subject">
-                      <b>{initials(c.name)}</b>
-                      {c.name}
-                    </span>
-                  </td>
-                  <td>
-                    <em className={`ad-status ${c.status}`}>
-                      {t(`ad.status.${c.status}`)}
+                    <em className={`ad-status ${s.status}`}>
+                      {t(`lab.st.${s.status}`)}
                     </em>
                   </td>
-                  <td className="muted">{c.date}</td>
-                  <td className="right">
-                    <button
-                      type="button"
-                      className="ad-more"
-                      aria-label="More actions"
-                    >
-                      ⋯
-                    </button>
+                  <td className="muted" dir="ltr">
+                    {shortDate(s.receivedAt)}
                   </td>
                 </tr>
               ))}

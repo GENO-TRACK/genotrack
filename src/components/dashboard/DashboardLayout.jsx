@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import DnaHelix from "../DnaHelix";
-import { useLanguage } from "../../i18n/LanguageContext";
+import { useLanguage } from "../../i18n/useLanguage";
+import { clearUser, getUser } from "../../auth/session";
 import "./DashboardLayout.css";
 
-// Menu per role. Hospital / Lab / Police will reuse the same dock with fewer items.
-export const NAV_BY_ROLE = {
+// Menu per role. The dock only shows the pages that role may open.
+const NAV_BY_ROLE = {
   admin: [
     { to: "/admin/profile", key: "nav.dashboard", icon: "grid", end: true },
     { to: "/admin/samples", key: "nav.samples", icon: "dna" },
@@ -17,6 +18,85 @@ export const NAV_BY_ROLE = {
     { to: "/admin/notifications", key: "nav.notifications", icon: "bell" },
     { to: "/admin/settings", key: "nav.settings", icon: "settings" },
   ],
+  // Hospital: every page of the hospital dashboard is now built.
+  hospital_staff: [
+    { to: "/hospital/profile", key: "nav.dashboard", icon: "grid", end: true },
+    { to: "/hospital/search", key: "nav.patientSearch", icon: "search" },
+    { to: "/hospital/newborn", key: "nav.newborn", icon: "baby" },
+    { to: "/hospital/samples", key: "nav.hospitalSamples", icon: "dna" },
+    // Every hospital role sees the list; only a geneticist can release.
+    { to: "/hospital/reports", key: "nav.hospitalReports", icon: "report" },
+    // Families of the newborns registered at this hospital.
+    { to: "/hospital/family", key: "nav.hospitalFamily", icon: "people" },
+    // Only a geneticist sees this item (see ONLY_HOSPITAL_ROLES below).
+    { to: "/hospital/risk", key: "nav.risk", icon: "risk" },
+    // Only a hospital admin sees this item.
+    { to: "/hospital/accesslog", key: "nav.accessLog", icon: "shield" },
+    // Every hospital role sees its own notifications.
+    {
+      to: "/hospital/notifications",
+      key: "nav.hospitalNotifications",
+      icon: "bell",
+    },
+    // Every hospital role sees its own settings; the staff list is for the
+    // hospital admin only (the page decides that).
+    {
+      to: "/hospital/settings",
+      key: "nav.hospitalSettings",
+      icon: "settings",
+    },
+  ],
+  // Lab technician: works on samples only, never on patients.
+  lab_technician: [
+    { to: "/lab/profile", key: "nav.dashboard", icon: "grid", end: true },
+    { to: "/lab/samples", key: "nav.labSamples", icon: "dna" },
+    { to: "/lab/custody", key: "nav.labCustody", icon: "chain" },
+    { to: "/lab/notifications", key: "nav.labNotifications", icon: "bell" },
+    { to: "/lab/settings", key: "nav.labSettings", icon: "settings" },
+  ],
+  // Police investigator: missing-child and found-child cases.
+  police_investigator: [
+    { to: "/police/profile", key: "nav.dashboard", icon: "grid", end: true },
+    { to: "/police/cases", key: "nav.policeCases", icon: "report", end: true },
+    { to: "/police/cases/new", key: "nav.policeNewCase", icon: "plus" },
+    { to: "/police/comparison", key: "nav.policeComparison", icon: "compare" },
+    {
+      to: "/police/notifications",
+      key: "nav.policeNotifications",
+      icon: "bell",
+    },
+    { to: "/police/settings", key: "nav.policeSettings", icon: "settings" },
+  ],
+};
+
+// Menu items that only some hospital roles may see (same rule as the route guard).
+const ONLY_HOSPITAL_ROLES = {
+  "/hospital/risk": ["geneticist"],
+  "/hospital/accesslog": ["hospital_admin"],
+};
+
+// Where each role's "profile" (account), "settings" and "notifications" live.
+const PROFILE_BY_ROLE = {
+  admin: "/admin/account",
+  hospital_staff: "/hospital/account",
+  lab_technician: "/lab/account",
+  police_investigator: "/police/account",
+};
+const SETTINGS_BY_ROLE = {
+  admin: "/admin/settings",
+  hospital_staff: "/hospital/settings",
+  lab_technician: "/lab/settings",
+  police_investigator: "/police/settings",
+};
+const NOTIFICATIONS_BY_ROLE = {
+  admin: "/admin/notifications",
+  hospital_staff: "/hospital/notifications",
+  lab_technician: "/lab/notifications",
+  police_investigator: "/police/notifications",
+};
+// The big "+" button at the bottom of the dock.
+const INTAKE_BY_ROLE = {
+  admin: "/admin/samples/new",
 };
 
 const ICONS = {
@@ -36,6 +116,25 @@ const ICONS = {
   bell: <path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 21h4" />,
   settings: (
     <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12l2-1-2-4-2 .6-1.5-1L15 4h-4l-.5 2.6-1.5 1L7 7 5 11l2 1v1l-2 1 2 4 2-.6 1.5 1L11 20h4l.5-2.6 1.5-1 2 .6 2-4-2-1z" />
+  ),
+  // Admin Settings icons
+  roles: (
+    <path d="M12 3 4 6v6c0 4.5 3.2 8 8 9 4.8-1 8-4.5 8-9V6l-8-3zM9.5 12a2.5 2.5 0 1 0 5 0 2.5 2.5 0 0 0-5 0zM8 17c.6-2 2.2-3 4-3s3.4 1 4 3" />
+  ),
+  export: <path d="M12 16V4M7 9l5-5 5 5M5 20h14" />,
+  tune: <path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6" />,
+  database: (
+    <path d="M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6" />
+  ),
+  sync: (
+    <path d="M20 8A8 8 0 0 0 5.6 6.4L4 8M4 4v4h4M4 16a8 8 0 0 0 14.4 1.6L20 16M20 20v-4h-4" />
+  ),
+  globe: (
+    <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9S14.5 18.4 12 21c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z" />
+  ),
+  history: <path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2" />,
+  key: (
+    <path d="M14 10a4 4 0 1 0-3.5 4L12 15.5V18h2.5v2.5H17V18l3-3-1.5-1.5M7.5 9h.01" />
   ),
   search: <path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-5-5" />,
   logout: <path d="M10 4H5v16h5M16 8l4 4-4 4M20 12H9" />,
@@ -68,58 +167,26 @@ const ICONS = {
   alert: <path d="M12 3 2.5 20h19L12 3zM12 10v4M12 17.5v.5" />,
   bolt: <path d="M13 3 5 13.5h6L10 21l8-10.5h-6L13 3z" />,
   upload: <path d="M12 16V5M7 9l5-5 5 5M5 20h14" />,
+  // Used by the notification cards' dismiss button
+  close: <path d="M6 6l12 12M18 6 6 18" />,
+  // Hospital icons
+  baby: (
+    <path d="M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM5 21c0-3.9 3.1-7 7-7s7 3.1 7 7M10 9h.01M14 9h.01M10.5 11.2c.9.7 2.1.7 3 0" />
+  ),
   people: (
     <path d="M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM17 12a2.5 2.5 0 1 0 0-5M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M17 14c2.5 0 4 1.8 4 5" />
   ),
-  chart: <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />,
+  chart: <path d="M4 20V10M10 20V4M16 20v-8M22 20H2" />,
+  clock: <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2" />,
+  heart: (
+    <path d="M12 20s-8-5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 9c0 6-8 11-8 11z" />
+  ),
+  // Used by the "Release to patient" button
   share: (
     <path d="M18 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.6 13.5l6.8 4M15.4 6.5l-6.8 4" />
   ),
-  pdf: (
-    <path d="M6 3h9l4 4v14H6zM14 3v5h5M9 14h2a1.5 1.5 0 0 0 0-3H9v6M14 17v-6h1.5a2.5 2.5 0 0 1 0 6H14" />
-  ),
-  child: (
-    <path d="M12 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM6 21c0-3.5 2.7-6 6-6s6 2.5 6 6M10 7.5h.01M14 7.5h.01" />
-  ),
-  calendar: <path d="M5 5h14v15H5zM5 10h14M9 3v4M15 3v4" />,
-  monitor: <path d="M3 12h4l3-7 4 14 3-7h4" />,
-  food: (
-    <path d="M7 3v8a2 2 0 0 0 2 2v8M11 3v8a2 2 0 0 1-2 2M7 7h4M17 3c-2 2-2.5 5-2.5 8h2.5v10" />
-  ),
-  doubleCheck: <path d="M2 13l4 4L14 8M10 15l2 2L21 8" />,
-  filter: <path d="M3 5h18l-7 8v6l-4 2v-8L3 5z" />,
-  close: <path d="M6 6l12 12M18 6 6 18" />,
-  info: <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v6M12 7.5v.5" />,
-  clock: <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2" />,
-  chevronDown: <path d="m6 9 6 6 6-6" />,
-  sync: (
-    <path d="M20 11a8 8 0 0 0-14-4M4 5v4h4M4 13a8 8 0 0 0 14 4M20 19v-4h-4" />
-  ),
-  database: (
-    <path d="M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3" />
-  ),
-  server: <path d="M4 4h16v6H4zM4 14h16v6H4zM8 7h.01M8 17h.01" />,
-  roles: (
-    <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4.4 3.6-7 8-7M17 15l1.2 2.3 2.5.4-1.8 1.8.4 2.5-2.3-1.2-2.3 1.2.4-2.5-1.8-1.8 2.5-.4z" />
-  ),
-  export: <path d="M12 15V4M8 8l4-4 4 4M5 13v7h14v-7" />,
-  tune: <path d="M4 7h10M18 7h2M4 17h2M10 17h10M16 4v6M8 14v6" />,
-  globe: (
-    <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" />
-  ),
-  history: <path d="M4 12a8 8 0 1 0 3-6.2M4 4v4h4M12 8v4l3 2" />,
-  fingerprint: (
-    <path d="M7 11a5 5 0 0 1 10 0v2M5 14v-3a7 7 0 0 1 14 0v2M9 20c.5-2 .5-4 .5-6a2.5 2.5 0 0 1 5 0c0 3 .5 5 1.5 7M12 14v2" />
-  ),
-  desktop: <path d="M3 5h18v11H3zM8 21h8M12 16v5" />,
-  phone: <path d="M8 3h8v18H8zM11 18h2" />,
-  key: (
-    <path d="M14 10a4 4 0 1 0-3.5 4L14 17.5h2.5V20H19v-2.5l1.5-1.5v-3h-3l-2-2" />
-  ),
-  userPlus: (
-    <path d="M10 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM3 21c0-4 3-6.5 7-6.5M18 9v6M15 12h6" />
-  ),
-  back: <path d="M15 5 8 12l7 7" />,
+  // Used by the police case pages (the progress strip uses "arrow")
+  arrow: <path d="M5 12h14M13 6l6 6-6 6" />,
 };
 
 export function Icon({ name, size = 20 }) {
@@ -145,8 +212,17 @@ export default function DashboardLayout({ role = "admin", children }) {
   const { t, toggleLang } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
-  const items = NAV_BY_ROLE[role] || [];
+  const hospitalRole = getUser()?.hospitalRole;
+  // Hide the items this hospital role may not open.
+  const items = (NAV_BY_ROLE[role] || []).filter((item) => {
+    const only = ONLY_HOSPITAL_ROLES[item.to];
+    return !only || only.includes(hospitalRole);
+  });
   const roleKey = `role.${role}`;
+  const profilePath = PROFILE_BY_ROLE[role];
+  const settingsPath = SETTINGS_BY_ROLE[role];
+  const notificationsPath = NOTIFICATIONS_BY_ROLE[role];
+  const intakePath = INTAKE_BY_ROLE[role];
 
   // Close the profile menu on outside click or Escape
   useEffect(() => {
@@ -167,7 +243,7 @@ export default function DashboardLayout({ role = "admin", children }) {
 
   function handleLogout() {
     // Demo only: replace with real session handling when the backend exists.
-    localStorage.removeItem("genotrack_user");
+    clearUser();
     navigate("/login", { replace: true });
   }
 
@@ -202,17 +278,19 @@ export default function DashboardLayout({ role = "admin", children }) {
           ))}
         </nav>
 
-        <button
-          type="button"
-          className="dock-intake"
-          title={t("nav.newIntake")}
-          onClick={() => navigate("/admin/samples/new")}
-        >
-          <span className="dock-ico">
-            <Icon name="plus" />
-          </span>
-          <span className="dock-label">{t("nav.newIntake")}</span>
-        </button>
+        {intakePath && (
+          <button
+            type="button"
+            className="dock-intake"
+            title={t("nav.newIntake")}
+            onClick={() => navigate(intakePath)}
+          >
+            <span className="dock-ico">
+              <Icon name="plus" />
+            </span>
+            <span className="dock-label">{t("nav.newIntake")}</span>
+          </button>
+        )}
       </aside>
 
       <div className="dash-main">
@@ -240,8 +318,7 @@ export default function DashboardLayout({ role = "admin", children }) {
               type="button"
               className="dash-icon-btn"
               aria-label={t("nav.notifications")}
-              title={t("nav.notifications")}
-              onClick={() => navigate("/admin/notifications")}
+              onClick={() => notificationsPath && navigate(notificationsPath)}
             >
               <Icon name="bell" />
               <b />
@@ -265,19 +342,30 @@ export default function DashboardLayout({ role = "admin", children }) {
 
               {menuOpen && (
                 <div className="dash-menu" role="menu">
-                  <button type="button" role="menuitem">
-                    <Icon name="user" size={18} /> {t("top.profile")}
-                  </button>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      navigate("/admin/settings");
-                    }}
-                  >
-                    <Icon name="settings" size={18} /> {t("nav.settings")}
-                  </button>
+                  {profilePath && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        navigate(profilePath);
+                      }}
+                    >
+                      <Icon name="user" size={18} /> {t("top.profile")}
+                    </button>
+                  )}
+                  {settingsPath && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        navigate(settingsPath);
+                      }}
+                    >
+                      <Icon name="settings" size={18} /> {t("nav.settings")}
+                    </button>
+                  )}
                   <button
                     type="button"
                     role="menuitem"

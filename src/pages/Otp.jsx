@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import DnaHelix from "../components/DnaHelix";
 import AuthLangSwitch from "../i18n/AuthLangSwitch";
-import { useLanguage } from "../i18n/LanguageContext";
+import { useLanguage } from "../i18n/useLanguage";
 import "./Login.css";
 import "./Otp.css";
 

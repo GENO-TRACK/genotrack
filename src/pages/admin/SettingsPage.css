@@ -752,6 +752,49 @@
         display: none;
     }
 
+    * Stat value in amber when the lab has flagged samples */ .st-stat strong.amber {
+        color: #fbbf24;
+    }
+
+    /* Stat value text that wraps on phones: the small unit after the number */
+    .st-stat strong span {
+        font-size: 0.55em;
+        font-weight: 700;
+    }
+
+    /* Role tiers used by the personnel list.
+   (.st-tier.hospital_admin / .geneticist / .staff come from HospitalSettings.css) */
+    .st-tier.hospital {
+        background: rgba(45, 212, 191, 0.16);
+        color: #2dd4bf;
+    }
+
+    .st-tier.geneticist {
+        background: rgba(167, 139, 250, 0.16);
+        color: #a78bfa;
+    }
+
+    .st-tier.staff {
+        background: rgba(96, 165, 250, 0.16);
+        color: #60a5fa;
+    }
+
+    /* Status chip for the new "Needs attention" work item (red) */
+    .st-mst.attention {
+        background: rgba(248, 113, 113, 0.14);
+        color: #f87171;
+    }
+
+    /* Small note under a section title (keys rotation, personnel count) */
+    .st-block>.st-showing {
+        margin: 0 0 12px;
+    }
+
+    /* The area column shows a route like /hospital: keep it on one line */
+    .st-last {
+        white-space: nowrap;
+    }
+
     /* ---------- Personnel table: scroll inside the card, never clip ---------- */
     .st-block .ad-table-wrap,
     .st-block .table-wrap,

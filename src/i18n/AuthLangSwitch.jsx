@@ -1,4 +1,4 @@
-import { useLanguage } from "../i18n/LanguageContext";
+import { useLanguage } from "./useLanguage";
 
 export default function AuthLangSwitch() {
   const { lang, toggleLang } = useLanguage();

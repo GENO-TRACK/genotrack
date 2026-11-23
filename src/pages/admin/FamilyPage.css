@@ -491,9 +491,88 @@
     text-transform: uppercase;
 }
 
+
+/* Subject picker card */
+.fm-pick {
+    display: grid;
+    grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+    gap: 24px;
+    align-items: end;
+    margin-bottom: 18px;
+}
+
+.fm-pick .fm-pick-field {
+    margin-bottom: 0;
+}
+
+/* Label above value, never pushed to opposite ends */
+.fm-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px 20px;
+    margin: 0;
+}
+
+.fm-facts>div {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+.fm-facts dt {
+    color: #6b7780;
+    font-size: 11.5px;
+    font-weight: 700;
+}
+
+.fm-facts dd {
+    margin: 0;
+    color: #e6edf1;
+    font-size: 13.5px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+/* Case status colours */
+.fm-foot .fm-open {
+    color: #fbbf24;
+}
+
+/* Attach form */
+.fm-add {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+    align-items: center;
+    margin: 14px 0;
+    padding: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.fm-add .sm-add {
+    justify-content: center;
+}
+
+/* Samples added on this page */
+.fm-status.pending {
+    background: rgba(251, 191, 36, 0.16);
+    color: #fbbf24;
+}
+
+@media (max-width: 900px) {
+    .fm-pick {
+        grid-template-columns: minmax(0, 1fr);
+        align-items: stretch;
+    }
+}
+
 [dir="rtl"] .fm-enc {
     letter-spacing: 0;
 }
+
+
 
 /* ---------- Responsive ---------- */
 @media (max-width: 1000px) {

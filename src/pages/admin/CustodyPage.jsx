@@ -1,85 +1,85 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import DashboardLayout, {
   Icon,
 } from "../../components/dashboard/DashboardLayout";
-import { useLanguage } from "../../i18n/LanguageContext";
+import { useLanguage } from "../../i18n/useLanguage";
+import { getLabCustody, listLabSamples } from "../../auth/lab";
 import "./AdminDashboard.css";
+import "./SamplesPage.css";
 import "./CustodyPage.css";
+import "../lab/Lab.css";
 
-// ---- Demo data: replace with API calls later ----
-const SAMPLE_REF = "GTX-99283-DELTA";
-const CHECKSUM =
-  "8f2d9e1a4c5b3d6f7e8a9c0b1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0";
-const DOC_ID = "GT-COC-2023-X99";
+// Event type -> icon and colour of the timeline node.
+// Same events the lab writes: received, sequencing, done, flagged.
+const EVENT_STYLE = {
+  received: { icon: "truck", tone: "blue" },
+  sequencing: { icon: "dna", tone: "teal" },
+  done: { icon: "check", tone: "teal" },
+  flagged: { icon: "alert", tone: "red" },
+};
 
-const STATS = [
-  { key: "transitions", value: "04", unit: "nodes" },
-  { key: "transit", value: "18h 42m" },
-  { key: "temp", value: "-80.4°C" },
-];
-
-// side: which side of the timeline the card sits on (desktop); alternates
-const EVENTS = [
-  {
-    id: "collected",
-    time: "08:12 AM",
-    date: "Oct 24, 2023",
-    icon: "pin",
-    tone: "teal",
-    person: "Nurse Sarah Jenkins",
-    role: "fieldSpecialist",
-    place: "St. Jude Medical Center",
-    badge: { kind: "signature", value: "verified" },
-  },
-  {
-    id: "transferred",
-    time: "11:45 AM",
-    date: "Oct 24, 2023",
-    icon: "truck",
-    tone: "blue",
-    person: "Biogen Logistics Unit 4",
-    role: "courier",
-    place: null,
-    badge: { kind: "auth", value: "BIO-4922" },
-    live: true,
-  },
-  {
-    id: "analysis",
-    time: "02:30 PM",
-    date: "Oct 24, 2023",
-    icon: "flask",
-    tone: "teal",
-    person: "Dr. Marcus Vane",
-    role: "analyst",
-    place: "GenoTrack Lab HQ",
-    badge: { kind: "signature", value: "verified" },
-  },
-  {
-    id: "archived",
-    time: "05:50 PM",
-    date: "Oct 24, 2023",
-    icon: "vault",
-    tone: "violet",
-    person: "Automated Bio-Vault",
-    role: "cryo",
-    place: "C-09 / Slot: 442",
-    badge: { kind: "status", value: "locked" },
-  },
-];
-
+// Admin Chain of Custody: pick any sample the lab holds and read its real
+// timeline. It reads the same demo data as the lab's Chain of Custody page,
+// so a Start sequencing or a flag raised in the lab shows up here too.
+// The "received" step shows who transferred the sample (typed on Add Sample).
+// The DNA Samples list opens this page with ?sample=<id>.
 export default function CustodyPage() {
-  const { t } = useLanguage();
-  const [copied, setCopied] = useState(false);
+  const { t, lang } = useLanguage();
+  const [params] = useSearchParams();
+  const wanted = params.get("sample") || "";
 
-  async function copyChecksum() {
-    try {
-      await navigator.clipboard.writeText(CHECKSUM);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1600);
-    } catch {
-      /* clipboard blocked: ignore */
-    }
+  const [samples, setSamples] = useState([]);
+  const [sampleId, setSampleId] = useState("");
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // The list of samples for the dropdown. A ?sample= id that exists wins.
+  useEffect(() => {
+    let alive = true;
+    listLabSamples().then((list) => {
+      if (!alive) return;
+      setSamples(list);
+      const match = list.find((s) => s.id === wanted);
+      if (match) setSampleId(match.id);
+      else if (list.length) setSampleId(list[0].id);
+      else setLoading(false);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [wanted]);
+
+  // The custody timeline of the chosen sample. "loading" is switched on in
+  // the dropdown handler, so the effect only sets state after the data arrives.
+  useEffect(() => {
+    if (!sampleId) return undefined;
+    let alive = true;
+    getLabCustody(sampleId).then((res) => {
+      if (!alive) return;
+      setData(res);
+      setLoading(false);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [sampleId]);
+
+  function pickSample(id) {
+    if (id === sampleId) return;
+    setLoading(true);
+    setSampleId(id);
   }
+
+  const events = useMemo(() => (data ? data.events : []), [data]);
+
+  const hospitalName = (s) =>
+    lang === "ar" && s.hospitalAr ? s.hospitalAr : s.hospital;
+
+  const stamp = (iso) => ({
+    date: iso.slice(0, 10),
+    time: iso.slice(11, 16),
+  });
 
   return (
     <DashboardLayout role="admin">
@@ -93,116 +93,117 @@ export default function CustodyPage() {
           <p>
             {t("cu.ref")}:{" "}
             <b className="cu-ref" dir="ltr">
-              {SAMPLE_REF}
+              {sampleId || "-"}
             </b>
           </p>
         </div>
-        <button type="button" className="sm-add">
-          <Icon name="plus" size={18} /> {t("cu.add")}
-        </button>
       </section>
 
-      {/* Summary */}
-      <section className="cu-summary">
-        <article className="ad-card cu-status">
-          <span className="cu-label">{t("cu.status")}</span>
-          <strong>
-            <Icon name="shield" size={22} /> {t("cu.verified")}
-          </strong>
-        </article>
-
-        {STATS.map((s) => (
-          <article key={s.key} className="ad-card cu-stat">
-            <span className="cu-label">{t(`cu.stat.${s.key}`)}</span>
-            <strong dir="ltr">
-              {s.value}
-              {s.unit && <small>{t("cu.stat.nodes")}</small>}
-            </strong>
-          </article>
-        ))}
+      {/* Sample picker */}
+      <section className="ad-card sm-filters">
+        <label className="sm-field sm-field-search">
+          <span>{t("cu.pick")}</span>
+          <select
+            className="sm-select"
+            value={sampleId}
+            onChange={(e) => pickSample(e.target.value)}
+          >
+            {samples.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.id} · {t(`sm.type.${s.type}`)} · {hospitalName(s)}
+              </option>
+            ))}
+          </select>
+        </label>
       </section>
 
-      {/* Integrity checksum */}
-      <section className="ad-card cu-hash">
-        <div className="cu-hash-text">
-          <span className="cu-label">{t("cu.checksum")}</span>
-          <code dir="ltr">SHA-256: {CHECKSUM}</code>
-        </div>
-        <div className="cu-hash-side">
-          <span className="cu-enc">
-            <Icon name="lock" size={16} /> {t("cu.encrypted")}
-          </span>
-          <button type="button" className="sf-btn" onClick={copyChecksum}>
-            {copied ? t("cu.copied") : t("cu.copy")}
-          </button>
-        </div>
-      </section>
+      {!loading && !data && <p className="ps-hint">{t("cu.empty")}</p>}
 
-      {/* Timeline */}
-      <section className="cu-timeline" aria-label={t("cu.title1")}>
-        {EVENTS.map((e, i) => (
-          <div key={e.id} className={`cu-row ${i % 2 === 0 ? "start" : "end"}`}>
-            <div className="cu-card ad-card">
-              <div className="cu-when">
-                <b dir="ltr">{e.time}</b>
-                <span>{e.date}</span>
-              </div>
-              <h3>{t(`cu.ev.${e.id}.title`)}</h3>
-              <p>{t(`cu.ev.${e.id}.text`)}</p>
+      {data && (
+        <>
+          {/* Summary */}
+          <section className="cu-summary">
+            <article className="ad-card cu-status">
+              <span className="cu-label">{t("lab.c.status")}</span>
+              <strong>
+                <Icon name="shield" size={22} />{" "}
+                {t(`lab.st.${data.sample.status}`)}
+              </strong>
+            </article>
+            <article className="ad-card cu-stat">
+              <span className="cu-label">{t("lab.c.hospital")}</span>
+              <strong className="lab-c-small">
+                {hospitalName(data.sample)}
+              </strong>
+            </article>
+            <article className="ad-card cu-stat">
+              <span className="cu-label">{t("lab.c.storage")}</span>
+              <strong dir="ltr" className="lab-c-small">
+                {data.sample.storage}
+              </strong>
+            </article>
+            <article className="ad-card cu-stat">
+              <span className="cu-label">{t("lab.c.temp")}</span>
+              <strong dir="ltr">{data.sample.temp}°C</strong>
+            </article>
+          </section>
 
-              <ul className="cu-meta">
-                <li>
-                  <Icon name={e.icon} size={16} />
-                  <span>
-                    <b>{e.person}</b>
-                    <small>{t(`cu.role.${e.role}`)}</small>
+          {/* Timeline */}
+          <section className="cu-timeline" aria-label={t("cu.title1")}>
+            {events.map((e, i) => {
+              const style = EVENT_STYLE[e.type] || EVENT_STYLE.received;
+              const when = stamp(e.at);
+              const byWho = e.by === "courier" ? t("lab.c.courier") : e.by;
+              return (
+                <div
+                  key={`${e.type}-${e.at}-${i}`}
+                  className={`cu-row ${i % 2 === 0 ? "start" : "end"}`}
+                >
+                  <div className="cu-card ad-card">
+                    <div className="cu-when">
+                      <b dir="ltr">{when.time}</b>
+                      <span dir="ltr">{when.date}</span>
+                    </div>
+                    <h3>{t(`lab.c.ev.${e.type}.title`)}</h3>
+                    <p>{t(`lab.c.ev.${e.type}.text`)}</p>
+
+                    {e.note && (
+                      <p className="lab-c-note">
+                        <Icon name="alert" size={14} /> {e.note}
+                      </p>
+                    )}
+
+                    <ul className="cu-meta">
+                      <li>
+                        <Icon name="user" size={16} />
+                        <span>
+                          <b dir="ltr">{byWho}</b>
+                          <small>
+                            {e.by === "courier"
+                              ? t("lab.c.roleCourier")
+                              : t("lab.c.roleTech")}
+                          </small>
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <span className={`cu-node ${style.tone}`}>
+                    <Icon name={style.icon} size={18} />
                   </span>
-                </li>
-                {e.place && (
-                  <li>
-                    <Icon name="pin" size={16} />
-                    <span>{e.place}</span>
-                  </li>
-                )}
-                {e.live && (
-                  <li className="cu-live">
-                    <i /> <span>{t("cu.gps")}</span>
-                  </li>
-                )}
-              </ul>
+                </div>
+              );
+            })}
+          </section>
 
-              <em className={`cu-badge ${e.badge.kind}`}>
-                {t(`cu.badge.${e.badge.kind}`)}:{" "}
-                <b dir="ltr">
-                  {e.badge.kind === "auth"
-                    ? e.badge.value
-                    : t(`cu.badge.${e.badge.value}`)}
-                </b>
-              </em>
-            </div>
-
-            <span className={`cu-node ${e.tone}`}>
-              <Icon name={e.icon} size={18} />
-            </span>
-          </div>
-        ))}
-      </section>
-
-      {/* Footer */}
-      <footer className="cu-foot">
-        <small dir="ltr">
-          {t("cu.docId")}: {DOC_ID}
-        </small>
-        <div className="cu-foot-actions">
-          <button type="button" className="sf-btn">
-            <Icon name="download" size={16} />
-            &nbsp;{t("cu.export")}
-          </button>
-          <button type="button" className="sf-btn">
-            {t("cu.audit")}
-          </button>
-        </div>
-      </footer>
+          {/* Footer */}
+          <footer className="cu-foot">
+            <small dir="ltr">
+              {t("cu.events")}: {events.length}
+            </small>
+          </footer>
+        </>
+      )}
     </DashboardLayout>
   );
 }

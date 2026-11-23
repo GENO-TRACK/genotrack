@@ -1,16 +1,9 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import translations from "./translations";
+import { LanguageContext, STORAGE_KEY } from "./languageStore";
 
-const STORAGE_KEY = "genotrack_lang";
-const LanguageContext = createContext(null);
-
+// Only the provider component lives in this file (React Fast Refresh needs
+// that). The hook is in useLanguage.js and the context in languageStore.js.
 export function LanguageProvider({ children }) {
   const [lang, setLang] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -54,10 +47,4 @@ export function LanguageProvider({ children }) {
       {children}
     </LanguageContext.Provider>
   );
-}
-
-export function useLanguage() {
-  const ctx = useContext(LanguageContext);
-  if (!ctx) throw new Error("useLanguage must be used inside LanguageProvider");
-  return ctx;
 }

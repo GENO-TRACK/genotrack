@@ -27,6 +27,50 @@
     animation: dash-pulse 1.8s ease-in-out infinite;
 }
 
+/* ---------- Case picker (under the page subtitle) ---------- */
+.cp-pick {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 14px 0 0;
+}
+
+/* The select reuses .sm-select (dark box, border, teal focus).
+   Here it only gets its size and the teal arrow. */
+.cp-pick .cp-select {
+    appearance: none;
+    -webkit-appearance: none;
+    box-sizing: border-box;
+    color-scheme: dark;
+    min-width: 240px;
+    max-width: 100%;
+    padding-inline-start: 14px;
+    padding-inline-end: 38px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-weight: 600;
+    background-color: rgba(255, 255, 255, 0.05);
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%232dd4bf' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+}
+
+[dir="rtl"] .cp-pick .cp-select {
+    background-position: left 14px center;
+}
+
+.cp-pick .cp-select option {
+    background: #0c1214;
+    color: #e6edf1;
+}
+
+/* ---------- Loading / empty ---------- */
+.cp-note {
+    margin: 0 0 18px;
+    color: #a3adb5;
+    font-size: 14px;
+}
+
 /* ---------- Match probability ---------- */
 .cp-prob {
     display: grid;
@@ -70,6 +114,23 @@
 
 [dir="rtl"] .cp-verified {
     letter-spacing: 0;
+}
+
+/* No-match case: the box turns red instead of teal */
+.cp-prob.no {
+    border-color: rgba(248, 113, 113, 0.45);
+    background: linear-gradient(135deg, rgba(248, 113, 113, 0.18), rgba(248, 113, 113, 0.04));
+    box-shadow: 0 0 40px rgba(248, 113, 113, 0.12);
+}
+
+.cp-prob.no strong {
+    color: #f87171;
+    text-shadow: 0 0 24px rgba(248, 113, 113, 0.4);
+}
+
+.cp-prob.no .cp-verified {
+    background: rgba(248, 113, 113, 0.16);
+    color: #f87171;
 }
 
 /* ---------- Specimen / score row ---------- */
@@ -120,12 +181,14 @@
     color: #ffffff;
     font-size: 22px;
     font-weight: 800;
+    overflow-wrap: anywhere;
 }
 
 .cp-spec-head code {
     color: #2dd4bf;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: 12.5px;
+    overflow-wrap: anywhere;
 }
 
 .cp-spec-ico {
@@ -220,6 +283,10 @@
     border-color: rgba(45, 212, 191, 0.3) !important;
 }
 
+.cp-score.no {
+    border-color: rgba(248, 113, 113, 0.3) !important;
+}
+
 .cp-score-ico {
     display: grid;
     place-items: center;
@@ -229,6 +296,12 @@
     background: rgba(45, 212, 191, 0.14);
     color: #2dd4bf;
     box-shadow: 0 0 24px rgba(45, 212, 191, 0.25);
+}
+
+.cp-score.no .cp-score-ico {
+    background: rgba(248, 113, 113, 0.14);
+    color: #f87171;
+    box-shadow: 0 0 24px rgba(248, 113, 113, 0.22);
 }
 
 .cp-score h3 {
@@ -253,6 +326,10 @@
 
 .cp-score>p b {
     color: #2dd4bf;
+}
+
+.cp-score.no>p b {
+    color: #f87171;
 }
 
 .cp-alleles {
@@ -292,6 +369,12 @@
     border-radius: inherit;
     background: linear-gradient(90deg, #14b8a6, #2dd4bf);
     box-shadow: 0 0 10px rgba(45, 212, 191, 0.5);
+    transition: width 240ms ease;
+}
+
+.cp-score.no .cp-bar i {
+    background: linear-gradient(90deg, #ef4444, #f87171);
+    box-shadow: 0 0 10px rgba(248, 113, 113, 0.5);
 }
 
 /* ---------- Alignment ---------- */
@@ -320,6 +403,20 @@
     margin: 0;
     color: #a3adb5;
     font-size: 13px;
+}
+
+/* "Bases are simulated" line under the alignment text */
+.cp-sim {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 8px !important;
+    padding: 3px 10px;
+    border: 1px solid rgba(251, 191, 36, 0.35);
+    border-radius: 999px;
+    background: rgba(251, 191, 36, 0.1);
+    color: #fbbf24 !important;
+    font-size: 11.5px !important;
+    font-weight: 600;
 }
 
 .cp-align-actions {
@@ -463,6 +560,16 @@
     font-weight: 800;
 }
 
+/* No-match verdict: red instead of teal */
+.cp-verdict.no {
+    border-color: rgba(248, 113, 113, 0.4) !important;
+    background: linear-gradient(135deg, rgba(248, 113, 113, 0.14), rgba(248, 113, 113, 0.03)) !important;
+}
+
+.cp-verdict.no .cp-verdict-text strong {
+    color: #f87171;
+}
+
 .cp-flagged,
 .cp-signed {
     font-size: 12.5px;
@@ -535,6 +642,11 @@
 
     .cp-score {
         order: 0;
+    }
+
+    .cp-pick .cp-select {
+        width: 100%;
+        min-width: 0;
     }
 }
 

@@ -488,6 +488,89 @@
     text-align: center;
 }
 
+/* Subject picker card */
+.rp-pick {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.rp-pick .rp-pick-field {
+    flex: 1;
+    max-width: 420px;
+    min-width: 240px;
+    margin-bottom: 0;
+}
+
+.rp-note-ok {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: rgba(45, 212, 191, 0.14);
+    color: #2dd4bf;
+    font-size: 11.5px;
+    font-weight: 700;
+}
+
+/* Disabled header buttons while no report exists */
+.rp-head-actions .sf-btn:disabled,
+.rp-head-actions .sm-add:disabled {
+    opacity: 0.55;
+    cursor: default;
+}
+
+/* Child facts: label above value, never pushed to opposite ends */
+.rp-child .rp-facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 20px;
+}
+
+.rp-child .rp-facts>div {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+.rp-child .rp-facts dd {
+    text-align: start;
+    overflow-wrap: anywhere;
+}
+
+/* Note under the risk list: the admin's own risk level */
+.rp-admin-risk {
+    margin: 16px 0 0;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: #a3adb5;
+    font-size: 12.5px;
+    line-height: 1.6;
+}
+
+/* Medium risk tone for the gauge level and list rows */
+.rp-level.medium {
+    background: rgba(251, 191, 36, 0.16);
+    color: #fbbf24;
+}
+
+.rp-risk-list li.medium span {
+    color: #fbbf24;
+}
+
+@media (max-width: 600px) {
+    .rp-child .rp-facts {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .rp-pick .rp-pick-field {
+        max-width: none;
+    }
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 1100px) {
     .rp-top {

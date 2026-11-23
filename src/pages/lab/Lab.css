@@ -1,0 +1,223 @@
+/* Lab dashboard + lab DNA Samples + lab Chain of Custody, Notifications, Settings.
+   Extends AdminDashboard.css and SamplesPage.css.
+   Same black canvas, teal accents. */
+
+/* Card header above the queue table */
+.lab-card-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 18px 20px 6px;
+}
+
+.lab-card-head h3 {
+    margin: 0;
+    font-size: 17px;
+}
+
+.lab-card-head small {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 12.5px;
+}
+
+/* Small red dot next to a flagged sample ID */
+.lab-flag-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-inline-start: 8px;
+    border-radius: 50%;
+    background: #f87171;
+    box-shadow: 0 0 8px rgba(248, 113, 113, 0.6);
+}
+
+/* Priority */
+.ad-status.lab-prio.high {
+    background: rgba(248, 113, 113, 0.14);
+    color: #f87171;
+}
+
+.ad-status.lab-prio.normal {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.72);
+}
+
+/* Lab status */
+.ad-status.lab-st.received {
+    background: rgba(251, 191, 36, 0.14);
+    color: #fbbf24;
+}
+
+.ad-status.lab-st.sequencing {
+    background: rgba(96, 165, 250, 0.16);
+    color: #60a5fa;
+}
+
+.ad-status.lab-st.done {
+    background: rgba(45, 212, 191, 0.16);
+    color: #2dd4bf;
+}
+
+/* Row buttons */
+.lab-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.lab-actions button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.lab-actions button.primary {
+    border-color: rgba(45, 212, 191, 0.45);
+    background: rgba(45, 212, 191, 0.14);
+    color: #2dd4bf;
+}
+
+.lab-actions button.primary:hover {
+    background: rgba(45, 212, 191, 0.24);
+}
+
+.lab-actions button.warn {
+    border-color: rgba(248, 113, 113, 0.4);
+    background: rgba(248, 113, 113, 0.1);
+    color: #f87171;
+}
+
+.lab-actions button.warn:hover {
+    background: rgba(248, 113, 113, 0.2);
+}
+
+.lab-actions button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Flag dialog */
+.lab-modal-back {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.62);
+    backdrop-filter: blur(4px);
+}
+
+.lab-modal {
+    width: 100%;
+    max-width: 460px;
+    padding: 22px;
+}
+
+.lab-modal h3 {
+    margin: 0 0 6px;
+    font-size: 18px;
+}
+
+.lab-modal h3 span {
+    color: #2dd4bf;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 15px;
+}
+
+.lab-modal p {
+    margin: 0 0 14px;
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 13px;
+}
+
+.lab-modal textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    font: inherit;
+    font-size: 14px;
+    resize: vertical;
+}
+
+.lab-modal textarea:focus {
+    outline: none;
+    border-color: #2dd4bf;
+}
+
+.lab-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.lab-modal-actions .sm-add:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ---------- Chain of Custody (lab) ---------- */
+
+/* Longer values (hospital name, storage slot) in the summary cards */
+.cu-summary strong.lab-c-small {
+    font-size: 17px;
+    line-height: 1.35;
+}
+
+/* Red node for a flag in the timeline */
+.cu-node.red {
+    background: #f87171;
+    box-shadow: 0 0 18px rgba(248, 113, 113, 0.55);
+}
+
+/* The note a technician wrote when flagging */
+.cu-card p.lab-c-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid rgba(248, 113, 113, 0.3);
+    border-radius: 10px;
+    background: rgba(248, 113, 113, 0.08);
+    color: #fca5a5;
+    font-size: 13px;
+}
+
+.cu-card p.lab-c-note svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+@media (max-width: 900px) {
+    .lab-table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .lab-table-wrap .sm-table {
+        min-width: 720px;
+    }
+
+    .lab-table-wrap .sm-table th,
+    .lab-table-wrap .sm-table td {
+        white-space: nowrap;
+    }
+}

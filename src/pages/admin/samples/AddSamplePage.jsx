@@ -3,26 +3,42 @@ import { Link, useNavigate } from "react-router-dom";
 import DashboardLayout, {
   Icon,
 } from "../../../components/dashboard/DashboardLayout";
-import { useLanguage } from "../../../i18n/LanguageContext";
+import { useLanguage } from "../../../i18n/useLanguage";
+import { getUser } from "../../../auth/session";
+import { addLabSample, LAB_HOSPITALS } from "../../../auth/lab";
 import "./../AdminDashboard.css";
 import "./../SamplesPage.css";
 
 const makeSampleId = () => `GT-${Math.floor(10000 + Math.random() * 90000)}-X`;
 const ACCEPTED = [".fastq", ".fq", ".bam", ".gz"];
 
+// The saved session is { nationalId, role } (see authenticate in App.jsx), so
+// the signed-in person is identified by nationalId. `id` is kept as a fallback
+// for a future backend that returns one.
+const currentUserRef = (user) =>
+  user ? String(user.nationalId || user.id || "").trim() : "";
+
+// The admin adds a sample to the lab queue. It is saved with addLabSample, so
+// it shows up in the admin DNA Samples list, on the dashboard, in Chain of
+// Custody and in the lab's work queue (status "received").
+// What is typed here (case ID, subject, risk level, transferred by) is stored
+// with the sample and shown on those pages.
 export default function AddSamplePage() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const navigate = useNavigate();
   const fileRef = useRef(null);
+  const user = getUser();
 
   const [sampleId] = useState(makeSampleId);
   const [form, setForm] = useState({
     type: "buccal",
     date: "",
-    location: "",
+    hospitalId: LAB_HOSPITALS[0].id,
     caseId: "",
     subject: "",
+    risk: "",
     priority: "standard",
+    transferredBy: currentUserRef(user),
     storage: "cold04",
   });
   const [file, setFile] = useState(null);
@@ -44,8 +60,8 @@ export default function AddSamplePage() {
   function validate() {
     const er = {};
     if (!form.date) er.date = t("af.err.required");
-    if (!form.location.trim()) er.location = t("af.err.required");
     if (!form.caseId.trim()) er.caseId = t("af.err.required");
+    if (!form.transferredBy.trim()) er.transferredBy = t("af.err.required");
     if (!file) er.file = t("af.err.fileRequired");
     setErrors(er);
     return Object.keys(er).length === 0;
@@ -55,18 +71,32 @@ export default function AddSamplePage() {
     e.preventDefault();
     if (!draft && !validate()) return;
     setBusy(true);
-    // TODO real backend: POST the form + file here.
-    await new Promise((r) => setTimeout(r, 700));
-    console.log(draft ? "draft" : "initialize", {
-      sampleId,
-      ...form,
-      file: file?.name,
-    });
-    setBusy(false);
-    if (draft) {
-      setSaved(t("af.draftSaved"));
-    } else {
-      navigate("/admin/samples");
+    try {
+      if (draft) {
+        // A draft is not a sample yet: nothing is added to the lab.
+        await new Promise((r) => setTimeout(r, 400));
+        setSaved(t("af.draftSaved"));
+      } else {
+        // TODO real backend: upload the sequencing file here too.
+        await addLabSample({
+          id: sampleId,
+          hospitalId: form.hospitalId,
+          type: form.type,
+          priority: form.priority,
+          storage: form.storage,
+          caseId: form.caseId,
+          subject: form.subject,
+          risk: form.risk,
+          transferredBy: form.transferredBy,
+          collectedAt: form.date,
+          staffId: currentUserRef(user) || "admin",
+        });
+        navigate("/admin/samples");
+      }
+    } catch {
+      setErrors((er) => ({ ...er, submit: t("af.err.save") }));
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -94,6 +124,7 @@ export default function AddSamplePage() {
       </section>
 
       {saved && <div className="sf-saved">{saved}</div>}
+      {errors.submit && <em className="sf-err">{errors.submit}</em>}
 
       <form onSubmit={(e) => submit(e, false)} noValidate>
         <div className="sf-grid">
@@ -125,8 +156,7 @@ export default function AddSamplePage() {
                 >
                   <option value="buccal">{t("sm.type.buccal")}</option>
                   <option value="blood">{t("sm.type.blood")}</option>
-                  <option value="hair">{t("af.type.hair")}</option>
-                  <option value="tissue">{t("af.type.skin")}</option>
+                  <option value="tissue">{t("sm.type.tissue")}</option>
                 </select>,
               )}
               {field(
@@ -141,14 +171,19 @@ export default function AddSamplePage() {
               )}
               <div className="full">
                 {field(
-                  "location",
+                  "hospitalId",
                   t("af.f.location"),
-                  <input
-                    className={`sf-input${errors.location ? " err" : ""}`}
-                    value={form.location}
-                    onChange={set("location")}
-                    placeholder={t("af.f.locationPh")}
-                  />,
+                  <select
+                    className="sf-input"
+                    value={form.hospitalId}
+                    onChange={set("hospitalId")}
+                  >
+                    {LAB_HOSPITALS.map((h) => (
+                      <option key={h.id} value={h.id}>
+                        {lang === "ar" ? h.nameAr : h.name}
+                      </option>
+                    ))}
+                  </select>,
                 )}
               </div>
             </div>
@@ -238,22 +273,34 @@ export default function AddSamplePage() {
                   onChange={set("subject")}
                 />,
               )}
-              <div className="full">
-                {field(
-                  "priority",
-                  t("af.f.priority"),
-                  <select
-                    className="sf-input"
-                    value={form.priority}
-                    onChange={set("priority")}
-                  >
-                    <option value="standard">{t("af.p.standard")}</option>
-                    <option value="urgent">{t("af.p.urgent")}</option>
-                    <option value="forensic">{t("af.p.forensic")}</option>
-                    <option value="critical">{t("af.p.critical")}</option>
-                  </select>,
-                )}
-              </div>
+              {field(
+                "risk",
+                t("af.f.risk"),
+                <select
+                  className="sf-input"
+                  value={form.risk}
+                  onChange={set("risk")}
+                >
+                  <option value="">{t("af.risk.none")}</option>
+                  <option value="low">{t("sm.risk.low")}</option>
+                  <option value="medium">{t("sm.risk.medium")}</option>
+                  <option value="high">{t("sm.risk.high")}</option>
+                </select>,
+              )}
+              {field(
+                "priority",
+                t("af.f.priority"),
+                <select
+                  className="sf-input"
+                  value={form.priority}
+                  onChange={set("priority")}
+                >
+                  <option value="standard">{t("af.p.standard")}</option>
+                  <option value="urgent">{t("af.p.urgent")}</option>
+                  <option value="forensic">{t("af.p.forensic")}</option>
+                  <option value="critical">{t("af.p.critical")}</option>
+                </select>,
+              )}
             </div>
           </article>
 
@@ -265,12 +312,13 @@ export default function AddSamplePage() {
             <div className="sf-fields">
               <div className="full">
                 {field(
-                  "by",
+                  "transferredBy",
                   t("af.f.by"),
                   <input
-                    className="sf-input"
-                    value={t("af.f.byValue")}
-                    readOnly
+                    className={`sf-input${errors.transferredBy ? " err" : ""}`}
+                    value={form.transferredBy}
+                    onChange={set("transferredBy")}
+                    dir="ltr"
                   />,
                 )}
               </div>

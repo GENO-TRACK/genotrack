@@ -1,89 +1,38 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout, {
   Icon,
 } from "../../components/dashboard/DashboardLayout";
 import LanguageSwitch from "../../components/dashboard/LanguageSwitch";
-import { useLanguage } from "../../i18n/LanguageContext";
+import { useLanguage } from "../../i18n/useLanguage";
+import { getUser } from "../../auth/session";
+import { listLabSamples } from "../../auth/lab";
+import { listCases } from "../../auth/police";
+import {
+  ADMIN_PERSONNEL,
+  getAdminKeysRotatedAt,
+  getAdminPrefs,
+  listAdminSessions,
+  revokeAdminSession,
+  rotateAdminKeys,
+  saveAdminPrefs,
+} from "../../auth/adminSettings";
 import "./AdminDashboard.css";
 import "./SamplesPage.css";
 import "./ComparisonPage.css";
 import "./SettingsPage.css";
+import "../hospital/HospitalSettings.css";
 
-// ---- Demo data: replace with API calls later ----
-const STATS = {
-  nodes: { online: 124, total: 128 },
-  uptime: "99.99",
-  load: 24,
-  temp: "42°C",
-  syncAgo: "0.2s",
-};
+// Fixed facts of the platform (not demo numbers): the encryption in use and
+// the version shown in the footer.
+const ENCRYPTION = "AES-256-GCM";
+const VERSION = "Clinical Sentinel v8.2.0-secure";
 
 const OPERATIONS = [
   { id: "roles", icon: "roles", to: "/admin/settings/permissions" },
   { id: "audit", icon: "export" },
-  { id: "recal", icon: "tune" },
+  { id: "recal", icon: "tune", to: "/admin/samples" },
   { id: "backup", icon: "database" },
-];
-
-const SECURITY = [
-  { id: "encryption", icon: "lock", value: "AES-256-GCM", tone: "teal" },
-  { id: "firewall", icon: "shield", value: "firewallValue", tone: "teal" },
-  { id: "attempts", icon: "alert", value: "0", tone: "amber" },
-];
-
-const DATABASES = [
-  { id: "codis", icon: "globe", value: "14.2M" },
-  { id: "interpol", icon: "shield", value: "8.7M" },
-  { id: "local", icon: "database", value: "2.1M" },
-];
-
-const MAINTENANCE = [
-  { id: "hotfix", date: "Oct 14, 02:00", status: "scheduled" },
-  { id: "migration", date: "Oct 21, 23:30", status: "pending" },
-];
-
-const PERSONNEL = [
-  {
-    id: "p1",
-    name: "Aris Thorne",
-    email: "a.thorne@genotrack.sentinel",
-    tier: "admin",
-    last: "now",
-  },
-  {
-    id: "p2",
-    name: "Elias Vance",
-    email: "e.vance@genotrack.sentinel",
-    tier: "lab",
-    last: "hours",
-  },
-  {
-    id: "p3",
-    name: "Lena Rossi",
-    email: "l.rossi@genotrack.sentinel",
-    tier: "investigator",
-    last: "yesterday",
-  },
-];
-
-const SESSIONS = [
-  {
-    id: "s1",
-    icon: "desktop",
-    name: "Workstation F-12",
-    ip: "192.168.1.44",
-    place: "Lyon, FR",
-    current: true,
-  },
-  {
-    id: "s2",
-    icon: "phone",
-    name: "Secure Sentinel Mobile",
-    ip: "10.0.4.12",
-    place: "Marseille, FR",
-    current: false,
-  },
 ];
 
 function Toggle({ on, onChange, label }) {
@@ -101,30 +50,208 @@ function Toggle({ on, onChange, label }) {
   );
 }
 
-export default function SettingsPage() {
-  const { t } = useLanguage();
-  const navigate = useNavigate();
+function download(name, text, type = "text/plain") {
+  const blob = new Blob([text], { type: `${type};charset=utf-8` });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 500);
+}
 
-  const [autoLock, setAutoLock] = useState("15");
-  const [sound, setSound] = useState(true);
-  const [mfa, setMfa] = useState(true);
-  const [sessions, setSessions] = useState(SESSIONS);
+function csvCell(v) {
+  const s = String(v ?? "");
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+export default function SettingsPage() {
+  const { t, lang } = useLanguage();
+  const navigate = useNavigate();
+  const user = getUser();
+  const userId = user?.nationalId || "ADMIN";
+
+  const [prefs, setPrefs] = useState(() => getAdminPrefs(userId));
+  const [sessions, setSessions] = useState([]);
+  const [samples, setSamples] = useState([]);
+  const [cases, setCases] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [rotatedAt, setRotatedAt] = useState(() =>
+    getAdminKeysRotatedAt(userId),
+  );
   const [saved, setSaved] = useState(false);
   const [toast, setToast] = useState("");
 
+  useEffect(() => {
+    let alive = true;
+    Promise.all([
+      listLabSamples(),
+      listCases(),
+      listAdminSessions(userId),
+    ]).then(([s, c, ses]) => {
+      if (!alive) return;
+      setSamples(s);
+      setCases(c);
+      setSessions(ses);
+      setLoading(false);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [userId]);
+
   function flash(msg) {
     setToast(msg);
-    setTimeout(() => setToast(""), 1800);
+    setTimeout(() => setToast(""), 2200);
+  }
+
+  function setPref(key, value) {
+    setPrefs((p) => ({ ...p, [key]: value }));
   }
 
   function save() {
+    saveAdminPrefs(userId, prefs);
     setSaved(true);
     setTimeout(() => setSaved(false), 1800);
   }
 
+  function discard() {
+    setPrefs(getAdminPrefs(userId));
+    flash(t("st.discarded"));
+  }
+
   function revoke(id) {
+    revokeAdminSession(userId, id);
     setSessions((list) => list.filter((s) => s.id !== id));
   }
+
+  function rotateKeys() {
+    const at = rotateAdminKeys(userId);
+    setRotatedAt(at);
+    setSessions((list) => list.filter((s) => s.current));
+    flash(t("st.rotated"));
+  }
+
+  const fmt = useMemo(
+    () =>
+      new Intl.DateTimeFormat(lang === "ar" ? "ar-EG" : "en-GB", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }),
+    [lang],
+  );
+
+  // ---- Numbers taken from the real lab samples and police cases ----
+  const stats = useMemo(() => {
+    const total = samples.length;
+    const done = samples.filter((s) => s.status === "done").length;
+    const flagged = samples.filter((s) => s.flagged).length;
+    const received = samples.filter((s) => s.status === "received").length;
+    const sequencing = samples.filter((s) => s.status === "sequencing").length;
+    const hospitals = new Set(samples.map((s) => s.hospital)).size;
+    const open = cases.filter((c) => c.status !== "resolved").length;
+    const lastEvent = samples
+      .flatMap((s) => (s.history || []).map((h) => h.at))
+      .concat(samples.map((s) => s.receivedAt))
+      .sort()
+      .pop();
+    return {
+      total,
+      done,
+      flagged,
+      received,
+      sequencing,
+      hospitals,
+      open,
+      lastEvent,
+    };
+  }, [samples, cases]);
+
+  // Share of samples already finished, and share still being worked on.
+  const doneShare = stats.total
+    ? Math.round((stats.done / stats.total) * 100)
+    : 0;
+  const activeShare = stats.total
+    ? Math.round(((stats.received + stats.sequencing) / stats.total) * 100)
+    : 0;
+
+  const databases = [
+    { id: "samples", icon: "database", value: stats.total },
+    { id: "cases", icon: "shield", value: cases.length },
+    { id: "hospitals", icon: "globe", value: stats.hospitals },
+  ];
+
+  // Work waiting to be done: built from the real queue.
+  const upcoming = useMemo(() => {
+    const out = [];
+    if (stats.received > 0)
+      out.push({ id: "queue", n: stats.received, status: "pending" });
+    if (stats.sequencing > 0)
+      out.push({ id: "sequencing", n: stats.sequencing, status: "scheduled" });
+    if (stats.flagged > 0)
+      out.push({ id: "flags", n: stats.flagged, status: "attention" });
+    if (stats.open > 0)
+      out.push({ id: "cases", n: stats.open, status: "scheduled" });
+    return out;
+  }, [stats]);
+
+  // ---- Operations ----
+  function exportAudit() {
+    const rows = [["type", "id", "hospital", "by", "at", "note"].join(",")];
+    samples.forEach((s) => {
+      const events = [
+        ...(s.history || []).map((h) => ({
+          type: h.type,
+          by: h.staffId || "",
+          at: h.at,
+          note: h.note || "",
+        })),
+        {
+          type: "received",
+          by: s.transferredBy || "courier",
+          at: s.receivedAt,
+          note: "",
+        },
+      ];
+      events.forEach((e) =>
+        rows.push(
+          [e.type, s.id, s.hospital, e.by, e.at, e.note].map(csvCell).join(","),
+        ),
+      );
+    });
+    cases.forEach((c) => {
+      (c.log || []).forEach((e) =>
+        rows.push(
+          [`case.${e.type}`, c.id, "", e.by || "", e.at || "", ""]
+            .map(csvCell)
+            .join(","),
+        ),
+      );
+    });
+    download("genotrack-audit-log.csv", rows.join("\n"), "text/csv");
+    flash(t("st.auditExported", { n: rows.length - 1 }));
+  }
+
+  function verifyBackup() {
+    const missing = samples.filter((s) => !s.hospital || !s.type).length;
+    flash(
+      missing === 0
+        ? t("st.backupOk", { n: samples.length })
+        : t("st.backupMissing", { n: missing }),
+    );
+  }
+
+  function runOperation(o) {
+    if (o.id === "audit") return exportAudit();
+    if (o.id === "backup") return verifyBackup();
+    if (o.to) return navigate(o.to);
+    return undefined;
+  }
+
+  const displayName =
+    user?.name || (lang === "ar" ? "مدير الوزارة" : "Ministry Admin");
 
   return (
     <DashboardLayout role="admin">
@@ -138,67 +265,64 @@ export default function SettingsPage() {
           <p>{t("st.subtitle")}</p>
         </div>
         <div className="st-head-actions">
-          <button
-            type="button"
-            className="sf-btn"
-            onClick={() => flash(t("st.discarded"))}
-          >
+          <button type="button" className="sf-btn" onClick={discard}>
             {t("st.discard")}
           </button>
           <button type="button" className="sm-add" onClick={save}>
-            <Icon name="sync" size={18} />{" "}
+            <Icon name="check" size={18} />{" "}
             {saved ? t("st.synced") : t("st.sync")}
           </button>
         </div>
       </section>
 
-      {/* System status */}
+      {/* System status: real numbers */}
       <section className="st-stats">
         <article className="ad-card st-stat">
           <small>{t("st.nodes")}</small>
           <strong dir="ltr">
-            {STATS.nodes.online}
-            <span>
-              {" "}
-              / {STATS.nodes.total} {t("st.online")}
-            </span>
+            {loading ? "…" : stats.hospitals}
+            <span> {t("st.sendingHospitals")}</span>
           </strong>
-          <div className="st-bar" dir="ltr">
-            <i
-              style={{
-                width: `${(STATS.nodes.online / STATS.nodes.total) * 100}%`,
-              }}
-            />
-          </div>
+          <em>{t("st.nodesText", { n: stats.total })}</em>
         </article>
 
         <article className="ad-card st-stat">
           <small>{t("st.dbSync")}</small>
-          <strong className="teal">
-            <Icon name="sync" size={22} /> {t("st.synchronized")}
+          <strong className={stats.flagged > 0 ? "amber" : "teal"}>
+            <Icon name="sync" size={22} />{" "}
+            {stats.flagged > 0 ? t("st.needsReview") : t("st.synchronized")}
           </strong>
-          <em dir="ltr">{t("st.lastSync", { s: STATS.syncAgo })}</em>
+          <em>
+            {stats.lastEvent
+              ? t("st.lastActivity", {
+                  d: fmt.format(new Date(stats.lastEvent)),
+                })
+              : t("st.noActivity")}
+          </em>
         </article>
 
         <article className="ad-card st-stat">
           <small>{t("st.uptime")}</small>
           <strong dir="ltr">
-            {STATS.uptime}
+            {loading ? "…" : doneShare}
             <span>%</span>
           </strong>
-          <em>{t("st.api")}</em>
+          <div className="st-bar" dir="ltr">
+            <i style={{ width: `${doneShare}%` }} />
+          </div>
+          <em>{t("st.finishedOf", { n: stats.done, total: stats.total })}</em>
         </article>
 
         <article className="ad-card st-stat">
           <small>{t("st.load")}</small>
           <strong dir="ltr">
-            {STATS.load}
+            {loading ? "…" : activeShare}
             <span>%</span>
           </strong>
           <div className="st-bar" dir="ltr">
-            <i className="amber" style={{ width: `${STATS.load}%` }} />
+            <i className="amber" style={{ width: `${activeShare}%` }} />
           </div>
-          <em dir="ltr">{t("st.temp", { c: STATS.temp })}</em>
+          <em>{t("st.inLab", { n: stats.received + stats.sequencing })}</em>
         </article>
       </section>
 
@@ -216,10 +340,7 @@ export default function SettingsPage() {
           <ul className="st-ops">
             {OPERATIONS.map((o) => (
               <li key={o.id}>
-                <button
-                  type="button"
-                  onClick={() => (o.to ? navigate(o.to) : flash(t("st.demo")))}
-                >
+                <button type="button" onClick={() => runOperation(o)}>
                   <span className="st-ico-sm">
                     <Icon name={o.icon} size={18} />
                   </span>
@@ -243,23 +364,23 @@ export default function SettingsPage() {
           </div>
 
           <div className="st-id-body">
-            <div className="st-avatar">M</div>
+            <div className="st-avatar">{String(displayName).charAt(0)}</div>
             <dl className="st-fields">
               <div>
                 <dt>{t("st.fullName")}</dt>
-                <dd>Aris Thorne</dd>
+                <dd>{displayName}</dd>
               </div>
               <div>
                 <dt>{t("st.serial")}</dt>
-                <dd dir="ltr">GT-8842</dd>
+                <dd dir="ltr">{userId}</dd>
               </div>
               <div>
                 <dt>{t("st.department")}</dt>
                 <dd>{t("st.dept")}</dd>
               </div>
               <div>
-                <dt>{t("st.email")}</dt>
-                <dd dir="ltr">a.thorne@genotrack.sentinel</dd>
+                <dt>{t("st.accessLevel")}</dt>
+                <dd>{t("st.accessLevelValue")}</dd>
               </div>
             </dl>
           </div>
@@ -292,8 +413,8 @@ export default function SettingsPage() {
               </div>
               <select
                 className="st-select"
-                value={autoLock}
-                onChange={(e) => setAutoLock(e.target.value)}
+                value={prefs.autoLock}
+                onChange={(e) => setPref("autoLock", e.target.value)}
               >
                 <option value="5">5 {t("st.min")}</option>
                 <option value="15">15 {t("st.min")}</option>
@@ -307,7 +428,11 @@ export default function SettingsPage() {
                 <b>{t("st.sound")}</b>
                 <small>{t("st.soundText")}</small>
               </div>
-              <Toggle on={sound} onChange={setSound} label={t("st.sound")} />
+              <Toggle
+                on={prefs.sound}
+                onChange={(v) => setPref("sound", v)}
+                label={t("st.sound")}
+              />
             </div>
           </div>
         </article>
@@ -327,26 +452,42 @@ export default function SettingsPage() {
                 <b>{t("st.mfa")}</b>
                 <small>{t("st.mfaText")}</small>
               </div>
-              <Toggle on={mfa} onChange={setMfa} label={t("st.mfa")} />
+              <Toggle
+                on={prefs.mfa}
+                onChange={(v) => setPref("mfa", v)}
+                label={t("st.mfa")}
+              />
             </div>
           </div>
 
           <ul className="st-secs">
-            {SECURITY.map((s) => (
-              <li key={s.id} className={s.tone}>
-                <span className="st-ico-sm">
-                  <Icon name={s.icon} size={18} />
-                </span>
-                <div>
-                  <small>{t(`st.sec.${s.id}`)}</small>
-                  <b dir="ltr">
-                    {s.value === "firewallValue"
-                      ? t("st.impenetrable")
-                      : s.value}
-                  </b>
-                </div>
-              </li>
-            ))}
+            <li className="teal">
+              <span className="st-ico-sm">
+                <Icon name="lock" size={18} />
+              </span>
+              <div>
+                <small>{t("st.sec.encryption")}</small>
+                <b dir="ltr">{ENCRYPTION}</b>
+              </div>
+            </li>
+            <li className={sessions.length > 1 ? "amber" : "teal"}>
+              <span className="st-ico-sm">
+                <Icon name="shield" size={18} />
+              </span>
+              <div>
+                <small>{t("st.sec.sessions")}</small>
+                <b dir="ltr">{sessions.length}</b>
+              </div>
+            </li>
+            <li className={stats.flagged > 0 ? "amber" : "teal"}>
+              <span className="st-ico-sm">
+                <Icon name="alert" size={18} />
+              </span>
+              <div>
+                <small>{t("st.sec.flags")}</small>
+                <b dir="ltr">{stats.flagged}</b>
+              </div>
+            </li>
           </ul>
         </article>
       </section>
@@ -361,23 +502,28 @@ export default function SettingsPage() {
           <button
             type="button"
             className="sf-btn st-small"
-            onClick={() => flash(t("st.demo"))}
+            onClick={rotateKeys}
           >
             <Icon name="key" size={14} />
             &nbsp;{t("st.rotate")}
           </button>
         </div>
+        <p className="st-showing">
+          {rotatedAt
+            ? t("st.rotatedAt", { d: fmt.format(new Date(rotatedAt)) })
+            : t("st.neverRotated")}
+        </p>
 
         <ul className="st-sessions">
           {sessions.map((s) => (
             <li key={s.id}>
               <span className="st-ico-sm">
-                <Icon name={s.icon} size={18} />
+                <Icon name={s.icon === "phone" ? "user" : "grid"} size={18} />
               </span>
               <div>
-                <b>{s.name}</b>
+                <b>{lang === "ar" ? s.nameAr : s.name}</b>
                 <small dir="ltr">
-                  {s.ip} · {s.place}
+                  {s.ip} · {lang === "ar" ? s.placeAr : s.place}
                 </small>
               </div>
               {s.current ? (
@@ -406,65 +552,76 @@ export default function SettingsPage() {
           <button
             type="button"
             className="sm-add st-small"
-            onClick={() => flash(t("st.demo"))}
+            onClick={() => navigate("/admin/settings/permissions")}
           >
-            <Icon name="userPlus" size={16} /> {t("st.deploy")}
+            <Icon name="roles" size={16} /> {t("st.manageRoles")}
           </button>
         </div>
 
-        <div className="ad-table-wrap">
+        <div className="ad-table-wrap hs-staff-wrap">
           <table className="ad-table st-table">
             <thead>
               <tr>
                 <th>{t("st.col.subject")}</th>
                 <th>{t("st.col.tier")}</th>
-                <th>{t("st.col.status")}</th>
+                <th>{t("st.col.area")}</th>
                 <th>{t("st.col.actions")}</th>
               </tr>
             </thead>
             <tbody>
-              {PERSONNEL.map((p) => (
-                <tr key={p.id}>
-                  <td>
-                    <div className="st-person">
-                      <span className="st-pav">{p.name[0]}</span>
-                      <div>
-                        <b>{p.name}</b>
-                        <small dir="ltr">{p.email}</small>
+              {ADMIN_PERSONNEL.map((p) => {
+                const me = p.id === userId;
+                const name = lang === "ar" ? p.nameAr : p.name;
+                return (
+                  <tr key={p.id}>
+                    <td>
+                      <div className="st-person">
+                        <span className="st-pav">{name.charAt(0)}</span>
+                        <div>
+                          <b>
+                            {name}
+                            {me && <em className="hs-you">{t("hs.you")}</em>}
+                          </b>
+                          <small dir="ltr">{p.id}</small>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className={`st-tier ${p.tier}`}>
-                      {t(`st.tier.${p.tier}`)}
-                    </span>
-                  </td>
-                  <td className="st-last">{t(`st.last.${p.last}`)}</td>
-                  <td>
-                    <div className="st-row-actions">
-                      <button type="button" onClick={() => flash(t("st.demo"))}>
-                        {t("st.edit")}
-                      </button>
-                      <button
-                        type="button"
-                        className="primary"
-                        onClick={() => navigate("/admin/settings/permissions")}
-                      >
-                        {t("st.perms")}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td>
+                      <span className={`st-tier ${p.tier}`}>
+                        {t(`st.tier.${p.tier}`)}
+                      </span>
+                    </td>
+                    <td className="st-last" dir="ltr">
+                      {p.area}
+                    </td>
+                    <td>
+                      <div className="st-row-actions">
+                        <button
+                          type="button"
+                          className="primary"
+                          onClick={() =>
+                            navigate("/admin/settings/permissions")
+                          }
+                        >
+                          {t("st.perms")}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
         <p className="st-showing">
-          {t("st.showing", { n: PERSONNEL.length, total: 48 })}
+          {t("st.showing", {
+            n: ADMIN_PERSONNEL.length,
+            total: ADMIN_PERSONNEL.length,
+          })}
         </p>
       </section>
 
-      {/* Databases + maintenance */}
+      {/* Databases + work waiting */}
       <section className="st-grid">
         <article className="ad-card">
           <div className="st-title">
@@ -474,14 +631,14 @@ export default function SettingsPage() {
             <h3>{t("st.dbMeta")}</h3>
           </div>
           <ul className="st-dbs">
-            {DATABASES.map((d) => (
+            {databases.map((d) => (
               <li key={d.id}>
                 <span className="st-ico-sm">
                   <Icon name={d.icon} size={18} />
                 </span>
                 <b>{t(`st.db.${d.id}`)}</b>
-                <strong dir="ltr">{d.value}</strong>
-                <small>{t("st.records")}</small>
+                <strong dir="ltr">{loading ? "…" : d.value}</strong>
+                <small>{t(`st.dbUnit.${d.id}`)}</small>
               </li>
             ))}
           </ul>
@@ -494,28 +651,36 @@ export default function SettingsPage() {
             </span>
             <h3>{t("st.maintenance")}</h3>
           </div>
-          <ul className="st-maint">
-            {MAINTENANCE.map((m) => (
-              <li key={m.id}>
-                <div>
-                  <small dir="ltr">{m.date}</small>
-                  <b>{t(`st.m.${m.id}.title`)}</b>
-                  <p>{t(`st.m.${m.id}.text`)}</p>
-                </div>
-                <em className={`st-mst ${m.status}`}>
-                  {t(`st.mst.${m.status}`)}
-                </em>
-              </li>
-            ))}
-          </ul>
+          {upcoming.length === 0 ? (
+            <p className="st-showing">{t("st.nothingWaiting")}</p>
+          ) : (
+            <ul className="st-maint">
+              {upcoming.map((m) => (
+                <li key={m.id}>
+                  <div>
+                    <small dir="ltr">{m.n}</small>
+                    <b>{t(`st.w.${m.id}.title`)}</b>
+                    <p>{t(`st.w.${m.id}.text`, { n: m.n })}</p>
+                  </div>
+                  <em className={`st-mst ${m.status}`}>
+                    {t(`st.mst.${m.status}`)}
+                  </em>
+                </li>
+              ))}
+            </ul>
+          )}
         </article>
       </section>
 
       <footer className="ad-card st-foot">
-        <span dir="ltr">Clinical Sentinel v8.2.0-secure</span>
+        <span dir="ltr">{VERSION}</span>
         <div>
-          <button type="button">{t("st.privacy")}</button>
-          <button type="button">{t("st.ethics")}</button>
+          <button type="button" onClick={() => navigate("/privacy")}>
+            {t("st.privacy")}
+          </button>
+          <button type="button" onClick={() => navigate("/terms")}>
+            {t("st.ethics")}
+          </button>
           <button type="button" onClick={() => navigate("/admin/custody")}>
             {t("st.audit")}
           </button>

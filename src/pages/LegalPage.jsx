@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import AuthLangSwitch from "../i18n/AuthLangSwitch";
-import { useLanguage } from "../i18n/LanguageContext";
+import { useLanguage } from "../i18n/useLanguage";
 
 export default function LegalPage({ type = "privacy" }) {
   const { t, isRtl } = useLanguage();

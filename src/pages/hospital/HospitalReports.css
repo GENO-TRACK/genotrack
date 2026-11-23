@@ -1,0 +1,264 @@
+/* Hospital Reports: release control.
+   Extends AdminDashboard.css, SamplesPage.css and PatientSearch.css.
+   Same black canvas, teal accents. */
+
+.hrp-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  border-radius: 12px;
+  background: rgba(251, 191, 36, 0.08);
+  color: #fbbf24;
+  font-size: 13px;
+}
+
+/* ---------- Tabs ---------- */
+.hrp-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 18px;
+  padding-bottom: 2px;
+  overflow-x: auto;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hrp-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #a3adb5;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 150ms, border-color 150ms;
+}
+
+.hrp-tabs button:hover {
+  color: #ffffff;
+}
+
+.hrp-tabs button.active {
+  border-bottom-color: #2dd4bf;
+  color: #2dd4bf;
+}
+
+.hrp-tabs button b {
+  min-width: 22px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 11px;
+  text-align: center;
+}
+
+.hrp-tabs button.active b {
+  background: rgba(45, 212, 191, 0.18);
+}
+
+/* ---------- List ---------- */
+.hrp-list {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 30px;
+}
+
+.hrp-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 18px;
+}
+
+.hrp-main {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.hrp-main header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hrp-main h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.hrp-badge {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+[dir="rtl"] .hrp-badge {
+  letter-spacing: 0;
+}
+
+.hrp-badge.draft {
+  background: rgba(251, 191, 36, 0.16);
+  color: #fbbf24;
+}
+
+.hrp-badge.released {
+  background: rgba(45, 212, 191, 0.16);
+  color: #2dd4bf;
+}
+
+.hrp-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.hrp-meta div {
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.hrp-meta dt {
+  color: #6b7780;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+[dir="rtl"] .hrp-meta dt {
+  letter-spacing: 0;
+}
+
+.hrp-meta dd {
+  margin: 0;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.hrp-risk.high {
+  color: #f87171;
+}
+
+.hrp-risk.medium {
+  color: #fbbf24;
+}
+
+.hrp-risk.low {
+  color: #2dd4bf;
+}
+
+.hrp-releasedline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: #2dd4bf;
+  font-size: 12.5px;
+}
+
+/* ---------- Actions ---------- */
+.hrp-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  min-width: 190px;
+}
+
+.hrp-wait {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #6b7780;
+  font-size: 12.5px;
+}
+
+.hrp-confirm {
+  display: grid;
+  gap: 10px;
+  max-width: 260px;
+  padding: 14px;
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  border-radius: 14px;
+  background: rgba(20, 184, 166, 0.08);
+}
+
+.hrp-confirm p {
+  margin: 0;
+  color: #cfd8dd;
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+.hrp-confirm > div {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ---------- Empty ---------- */
+.hrp-empty {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding-block: 32px !important;
+  text-align: center;
+}
+
+.hrp-empty h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.hrp-empty p {
+  max-width: 380px;
+  margin: 0;
+  color: #a3adb5;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 760px) {
+  .hrp-item {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hrp-actions {
+    justify-content: flex-start;
+    min-width: 0;
+  }
+
+  .hrp-confirm {
+    max-width: none;
+    width: 100%;
+  }
+
+  .hrp-actions .sm-add {
+    width: 100%;
+    justify-content: center;
+  }
+}

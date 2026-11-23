@@ -1,60 +1,172 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout, {
   Icon,
 } from "../../components/dashboard/DashboardLayout";
-import { useLanguage } from "../../i18n/LanguageContext";
+import { useLanguage } from "../../i18n/useLanguage";
+import { listLabSamples } from "../../auth/lab";
+import { listCases } from "../../auth/police";
 import "./AdminDashboard.css";
 import "./SamplesPage.css";
 import "./ComparisonPage.css";
 import "./NotificationsPage.css";
 
-// ---- Demo data: replace with API calls later ----
-const INITIAL = [
-  {
-    id: "n1",
-    category: "matches",
-    tone: "match",
-    icon: "alert",
-    time: { n: 2, unit: "min" },
-    unread: true,
-    meta: [
-      { k: "caseId", v: "#FR-901-2024" },
-      { k: "sampleId", v: "GTX-77291-B" },
-      { k: "confidence", v: "99.98%" },
-    ],
-    actions: ["viewComparison", "markRead"],
-  },
-  {
-    id: "n2",
-    category: "audit",
-    tone: "custody",
-    icon: "chain",
-    time: { n: 45, unit: "min" },
-    unread: true,
-    sample: "GTX-77291-B",
-    signer: "Dr. Elias Vance",
-    actions: ["auditLog", "dismiss"],
-  },
-  {
-    id: "n3",
-    category: "system",
-    tone: "system",
-    icon: "info",
-    time: { n: 3, unit: "hour" },
-    unread: false,
-    records: "1.4M",
-    actions: ["fullReport", "markRead"],
-  },
-];
+// Read / dismissed state of the admin's notifications (kept in this browser).
+const STATE_KEY = "genotrack_admin_notif_state";
+
+function readState() {
+  try {
+    const raw = localStorage.getItem(STATE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return {
+      read: Array.isArray(parsed?.read) ? parsed.read : [],
+      dismissed: Array.isArray(parsed?.dismissed) ? parsed.dismissed : [],
+    };
+  } catch {
+    return { read: [], dismissed: [] };
+  }
+}
+
+function writeState(state) {
+  localStorage.setItem(STATE_KEY, JSON.stringify(state));
+}
 
 const TABS = ["all", "matches", "system", "audit"];
 
+// Which plural form the Arabic / English phrases use for a number.
+function pluralForm(n) {
+  if (n === 1) return "one";
+  if (n === 2) return "two";
+  if (n >= 3 && n <= 10) return "few";
+  return "many";
+}
+
+// "just now", "N minutes ago", ... built from the timestamp.
+function agoParts(iso) {
+  const diff = Math.max(0, Date.now() - new Date(iso).getTime());
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return { key: "nt.ago.now", n: 0 };
+  if (mins < 60) return { key: "nt.ago.min", n: mins };
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return { key: "nt.ago.hour", n: hours };
+  return { key: "nt.ago.day", n: Math.floor(hours / 24) };
+}
+
+// Builds the admin's notifications from the real demo data:
+//  - police cases that have a match         -> Matches tab
+//  - samples the lab flagged                -> System tab
+//  - samples that are still waiting / done  -> System tab
+//  - custody events of the lab samples      -> Audit Trail tab
+function buildNotifications(samples, cases) {
+  const out = [];
+
+  cases.forEach((c) => {
+    if (c.result && c.result.outcome === "match") {
+      const last = c.log[c.log.length - 1];
+      out.push({
+        id: `match-${c.id}`,
+        kind: "match",
+        category: "matches",
+        tone: "match",
+        icon: "alert",
+        at: last ? last.at : c.openedAt,
+        caseId: c.id,
+        sampleId: c.result.recordId || "",
+        similarity: c.result.similarity,
+        confirmed: Boolean(c.result.confirmedAt),
+        actions: ["viewComparison", "markRead"],
+      });
+    }
+  });
+
+  samples.forEach((s) => {
+    if (s.flagged) {
+      out.push({
+        id: `flag-${s.id}`,
+        kind: "flag",
+        category: "system",
+        tone: "alert",
+        icon: "flask",
+        at: s.flagAt || s.receivedAt,
+        sampleId: s.id,
+        hospital: s.hospital,
+        hospitalAr: s.hospitalAr,
+        actions: ["auditLog", "markRead"],
+      });
+    }
+    if (s.status === "done") {
+      out.push({
+        id: `done-${s.id}`,
+        kind: "done",
+        category: "system",
+        tone: "system",
+        icon: "check",
+        at: s.receivedAt,
+        sampleId: s.id,
+        hospital: s.hospital,
+        hospitalAr: s.hospitalAr,
+        actions: ["fullReport", "markRead"],
+      });
+    }
+    if (s.status === "received") {
+      out.push({
+        id: `new-${s.id}`,
+        kind: "newSample",
+        category: "system",
+        tone: "system",
+        icon: "dna",
+        at: s.receivedAt,
+        sampleId: s.id,
+        hospital: s.hospital,
+        hospitalAr: s.hospitalAr,
+        actions: ["auditLog", "markRead"],
+      });
+    }
+    // The last custody step of the sample (a lab action) -> Audit Trail.
+    const step = (s.history || [])[0];
+    if (step && step.type !== "flagged") {
+      out.push({
+        id: `audit-${s.id}-${step.at}`,
+        kind: "custody",
+        category: "audit",
+        tone: "custody",
+        icon: "chain",
+        at: step.at,
+        sampleId: s.id,
+        step: step.type,
+        by: step.staffId || "",
+        actions: ["auditLog", "dismiss"],
+      });
+    }
+  });
+
+  return out.sort((a, b) => (a.at < b.at ? 1 : -1));
+}
+
 export default function NotificationsPage() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const navigate = useNavigate();
-  const [items, setItems] = useState(INITIAL);
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("all");
+  const [limit, setLimit] = useState(6);
+
+  useEffect(() => {
+    let alive = true;
+    Promise.all([listLabSamples(), listCases()]).then(([samples, cases]) => {
+      if (!alive) return;
+      const state = readState();
+      setItems(
+        buildNotifications(samples, cases)
+          .filter((n) => !state.dismissed.includes(n.id))
+          .map((n) => ({ ...n, unread: !state.read.includes(n.id) })),
+      );
+      setLoading(false);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const counts = useMemo(
     () => ({
@@ -66,43 +178,56 @@ export default function NotificationsPage() {
     [items],
   );
 
-  const visible = items.filter((i) => tab === "all" || i.category === tab);
+  const filtered = items.filter((i) => tab === "all" || i.category === tab);
+  const visible = filtered.slice(0, limit);
   const unreadCount = items.filter((i) => i.unread).length;
 
   function markRead(id) {
+    const state = readState();
+    if (!state.read.includes(id)) state.read.push(id);
+    writeState(state);
     setItems((list) =>
       list.map((i) => (i.id === id ? { ...i, unread: false } : i)),
     );
   }
 
   function markAll() {
+    const state = readState();
+    items.forEach((i) => {
+      if (!state.read.includes(i.id)) state.read.push(i.id);
+    });
+    writeState(state);
     setItems((list) => list.map((i) => ({ ...i, unread: false })));
   }
 
   function dismiss(id) {
+    const state = readState();
+    if (!state.dismissed.includes(id)) state.dismissed.push(id);
+    writeState(state);
     setItems((list) => list.filter((i) => i.id !== id));
   }
 
   function runAction(item, action) {
     if (action === "markRead") return markRead(item.id);
     if (action === "dismiss") return dismiss(item.id);
-    if (action === "viewComparison") {
-      markRead(item.id);
-      return navigate("/admin/comparison");
-    }
+    markRead(item.id);
+    if (action === "viewComparison") return navigate("/admin/comparison");
+    if (action === "fullReport") return navigate("/admin/reports");
     if (action === "auditLog") {
-      markRead(item.id);
-      return navigate("/admin/custody");
+      return navigate(`/admin/custody?sample=${item.sampleId}`);
     }
-    return markRead(item.id);
+    return undefined;
   }
 
-  function timeAgo({ n, unit }) {
-    if (n === 1) return t(`nt.ago.${unit}.one`);
-    if (n === 2) return t(`nt.ago.${unit}.two`);
-    if (n >= 3 && n <= 10) return t(`nt.ago.${unit}.few`, { n });
-    return t(`nt.ago.${unit}.many`, { n });
+  function timeAgo(iso) {
+    const { key, n } = agoParts(iso);
+    if (key === "nt.ago.now") return t(key);
+    return t(`${key}.${pluralForm(n)}`, { n });
   }
+
+  // Wrap Latin IDs so they do not flip inside Arabic sentences.
+  const iso = (v) => `\u2066${v}\u2069`;
+
   return (
     <DashboardLayout role="admin">
       {/* Header */}
@@ -144,80 +269,97 @@ export default function NotificationsPage() {
             role="tab"
             aria-selected={tab === k}
             className={tab === k ? "active" : ""}
-            onClick={() => setTab(k)}
+            onClick={() => {
+              setTab(k);
+              setLimit(6);
+            }}
           >
             {t(`nt.tab.${k}`)}
-            {k !== "audit" && (
-              <b dir="ltr">{k === "all" ? counts.all : counts[k]}</b>
-            )}
+            <b dir="ltr">{counts[k]}</b>
           </button>
         ))}
       </div>
 
       {/* List */}
       <section className="nt-list">
-        {visible.map((n) => (
-          <article
-            key={n.id}
-            className={`ad-card nt-item ${n.tone} ${n.unread ? "unread" : ""}`}
-          >
-            <span className="nt-ico">
-              <Icon name={n.icon} size={22} />
-            </span>
+        {loading && <p className="ps-hint">{t("nt.loading")}</p>}
 
-            <div className="nt-body">
-              <header>
-                <h3>{t(`nt.${n.id}.title`)}</h3>
-                <span className="nt-time">
-                  <Icon name="clock" size={13} /> {timeAgo(n.time)}
+        {!loading &&
+          visible.map((n) => {
+            const hospital =
+              lang === "ar" && n.hospitalAr ? n.hospitalAr : n.hospital;
+            return (
+              <article
+                key={n.id}
+                className={`ad-card nt-item ${n.tone} ${n.unread ? "unread" : ""}`}
+              >
+                <span className="nt-ico">
+                  <Icon name={n.icon} size={22} />
                 </span>
-              </header>
 
-              {n.meta ? (
-                <dl className="nt-meta">
-                  {n.meta.map((m) => (
-                    <div key={m.k}>
-                      <dt>{t(`nt.meta.${m.k}`)}</dt>
-                      <dd dir="ltr">{m.v}</dd>
-                    </div>
-                  ))}
-                </dl>
-              ) : (
-                <p>
-                  {t(`nt.${n.id}.text`, {
-                    sample: n.sample,
-                    signer: n.signer,
-                    records: n.records,
-                  })}
-                </p>
-              )}
+                <div className="nt-body">
+                  <header>
+                    <h3>{t(`nt.${n.kind}.title`)}</h3>
+                    <span className="nt-time">
+                      <Icon name="clock" size={13} /> {timeAgo(n.at)}
+                    </span>
+                  </header>
 
-              <div className="nt-actions">
-                {n.actions.map((a, i) => (
-                  <button
-                    key={a}
-                    type="button"
-                    className={i === 0 ? "primary" : ""}
-                    onClick={() => runAction(n, a)}
-                  >
-                    {t(`nt.act.${a}`)}
-                  </button>
-                ))}
-              </div>
-            </div>
+                  {n.kind === "match" ? (
+                    <dl className="nt-meta">
+                      <div>
+                        <dt>{t("nt.meta.caseId")}</dt>
+                        <dd dir="ltr">{n.caseId}</dd>
+                      </div>
+                      <div>
+                        <dt>{t("nt.meta.sampleId")}</dt>
+                        <dd dir="ltr">{n.sampleId}</dd>
+                      </div>
+                      <div>
+                        <dt>{t("nt.meta.confidence")}</dt>
+                        <dd dir="ltr">{n.similarity}%</dd>
+                      </div>
+                    </dl>
+                  ) : (
+                    <p>
+                      {t(`nt.${n.kind}.text`, {
+                        sample: iso(n.sampleId),
+                        hospital,
+                        by: iso(n.by || ""),
+                        step: n.step ? t(`nt.step.${n.step}`) : "",
+                      })}
+                    </p>
+                  )}
 
-            <button
-              type="button"
-              className="nt-close"
-              aria-label={t("nt.act.dismiss")}
-              onClick={() => dismiss(n.id)}
-            >
-              <Icon name="close" size={16} />
-            </button>
-          </article>
-        ))}
+                  <div className="nt-actions">
+                    {n.actions
+                      .filter((a) => a !== "markRead" || n.unread)
+                      .map((a, i) => (
+                        <button
+                          key={a}
+                          type="button"
+                          className={i === 0 ? "primary" : ""}
+                          onClick={() => runAction(n, a)}
+                        >
+                          {t(`nt.act.${a}`)}
+                        </button>
+                      ))}
+                  </div>
+                </div>
 
-        {visible.length === 0 && (
+                <button
+                  type="button"
+                  className="nt-close"
+                  aria-label={t("nt.act.dismiss")}
+                  onClick={() => dismiss(n.id)}
+                >
+                  <Icon name="close" size={16} />
+                </button>
+              </article>
+            );
+          })}
+
+        {!loading && filtered.length === 0 && (
           <div className="ad-card nt-clear">
             <span className="nt-ico">
               <Icon name="shield" size={26} />
@@ -228,9 +370,15 @@ export default function NotificationsPage() {
         )}
       </section>
 
-      <button type="button" className="nt-older">
-        {t("nt.older")} <Icon name="chevronDown" size={16} />
-      </button>
+      {!loading && filtered.length > limit && (
+        <button
+          type="button"
+          className="nt-older"
+          onClick={() => setLimit((l) => l + 6)}
+        >
+          {t("nt.older")} <Icon name="chevronDown" size={16} />
+        </button>
+      )}
     </DashboardLayout>
   );
 }

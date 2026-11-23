@@ -1,68 +1,36 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import DashboardLayout, {
   Icon,
 } from "../../components/dashboard/DashboardLayout";
-import { useLanguage } from "../../i18n/LanguageContext";
+import { useLanguage } from "../../i18n/useLanguage";
+import { listLabSamples } from "../../auth/lab";
+import { listHospitalSamples, listHospitalFamilies } from "../../auth/grants";
 import "./AdminDashboard.css";
 import "./SamplesPage.css";
+import "../lab/Lab.css";
 
-// ---- Demo data: replace with API calls later ----
-const SUMMARY = [
-  { key: "total", value: "2,841", tone: "teal" },
-  { key: "pending", value: "142", tone: "amber" },
-  { key: "risk", value: "28", tone: "red" },
-  { key: "families", value: "892", tone: "blue" },
-];
-
-const SAMPLES = [
-  {
-    id: "GT-99281-X",
-    name: "Baby Doe #99281",
-    ward: "NICU · Bed 12-A",
-    type: "buccal",
-    date: "Oct 24, 2023",
-    caseId: "C-4421-B",
-    risk: "high",
-    status: "matched",
-  },
-  {
-    id: "GT-48210-L",
-    name: "Sarah Jenkins",
-    ward: "Post-Op Recovery",
-    type: "blood",
-    date: "Oct 23, 2023",
-    caseId: "C-1290-A",
-    risk: "low",
-    status: "pending",
-  },
-  {
-    id: "GT-00129-Z",
-    name: "Baby Roe #00129",
-    ward: "NICU · Bed 04-B",
-    type: "blood",
-    date: "Oct 22, 2023",
-    caseId: "C-9910-K",
-    risk: "medium",
-    status: "analyzed",
-  },
-  {
-    id: "GT-88219-W",
-    name: "Mark Thompson",
-    ward: "General Ward 3",
-    type: "tissue",
-    date: "Oct 21, 2023",
-    caseId: "C-0021-M",
-    risk: "low",
-    status: "matched",
-  },
-];
+// The admin library reads the same demo data as the lab and the hospital:
+//   - the sample itself (hospital, type, status, date) -> listLabSamples
+//   - what the admin typed on Add Sample (subject, case ID, risk level)
+//     -> listLabSamples
+//   - patient, ward, case and risk for the hospital's own samples
+//     -> listHospitalSamples (joined by sample ID)
+//   - families -> listHospitalFamilies
+// A value typed on Add Sample wins over the hospital's record.
+// Nothing here is typed in by hand, so every number matches the other pages.
 
 const PAGE_SIZE = 10;
-const TOTAL = 2841;
+const MISSING = "—";
+
+// Prefer the collection date typed on the form, then the received date.
+const shortDate = (s) => {
+  const iso = s.collectedAt || s.receivedAt || "";
+  return iso ? iso.slice(0, 10) : "";
+};
 
 const initials = (name) =>
-  name
+  String(name || "")
     .replace("#", "")
     .split(" ")
     .filter((p) => /^[A-Za-z]/.test(p))
@@ -72,16 +40,64 @@ const initials = (name) =>
     .toUpperCase();
 
 export default function SamplesPage() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const navigate = useNavigate();
+  const [labSamples, setLabSamples] = useState([]);
+  const [hospitalSamples, setHospitalSamples] = useState([]);
+  const [families, setFamilies] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [risk, setRisk] = useState("all");
   const [type, setType] = useState("all");
   const [page, setPage] = useState(1);
 
+  useEffect(() => {
+    let alive = true;
+    Promise.all([
+      listLabSamples(),
+      listHospitalSamples(),
+      listHospitalFamilies(),
+    ]).then(([lab, hosp, fam]) => {
+      if (!alive) return;
+      setLabSamples(lab);
+      setHospitalSamples(hosp);
+      setFamilies(fam);
+      setLoading(false);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // One row per lab sample. Values typed on Add Sample come first, then the
+  // hospital's record (joined by sample ID) fills whatever is still empty.
+  const all = useMemo(() => {
+    const byId = new Map(hospitalSamples.map((h) => [h.id, h]));
+    return labSamples.map((s) => {
+      const h = byId.get(s.id) || null;
+      const hospitalName = lang === "ar" && s.hospitalAr ? s.hospitalAr : s.hospital;
+      const hospName = h ? (lang === "ar" ? h.nameAr || h.name : h.name) : "";
+      const hospWard = h ? (lang === "ar" ? h.wardAr || h.ward : h.ward) : "";
+      return {
+        id: s.id,
+        hospital: hospitalName,
+        type: s.type,
+        status: s.status,
+        flagged: s.flagged,
+        date: shortDate(s),
+        name: s.subject || hospName,
+        ward: s.subject ? hospitalName : hospWard,
+        caseId: s.caseId || (h ? h.caseId : ""),
+        risk: s.risk || (h ? h.risk : ""),
+      };
+    });
+  }, [labSamples, hospitalSamples, lang]);
+
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return SAMPLES.filter(
+    return all.filter(
       (s) =>
         (status === "all" || s.status === status) &&
         (risk === "all" || s.risk === risk) &&
@@ -89,13 +105,37 @@ export default function SamplesPage() {
         (!q ||
           s.id.toLowerCase().includes(q) ||
           s.name.toLowerCase().includes(q) ||
+          s.hospital.toLowerCase().includes(q) ||
           s.caseId.toLowerCase().includes(q)),
     );
-  }, [query, status, risk, type]);
+  }, [all, query, status, risk, type]);
 
-  const pages = Math.ceil(TOTAL / PAGE_SIZE);
-  const from = (page - 1) * PAGE_SIZE + 1;
-  const to = Math.min(page * PAGE_SIZE, TOTAL);
+  const summary = useMemo(
+    () => [
+      { key: "total", value: all.length, tone: "teal" },
+      {
+        key: "pending",
+        value: all.filter(
+          (s) => s.status === "received" || s.status === "sequencing",
+        ).length,
+        tone: "amber",
+      },
+      {
+        key: "risk",
+        value: all.filter((s) => s.risk === "high").length,
+        tone: "red",
+      },
+      { key: "families", value: families.length, tone: "blue" },
+    ],
+    [all, families],
+  );
+
+  const pages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const current = Math.min(page, pages);
+  const start = (current - 1) * PAGE_SIZE;
+  const visible = rows.slice(start, start + PAGE_SIZE);
+  const from = rows.length ? start + 1 : 0;
+  const to = Math.min(start + PAGE_SIZE, rows.length);
 
   return (
     <DashboardLayout role="admin">
@@ -115,13 +155,13 @@ export default function SamplesPage() {
 
       {/* Summary */}
       <section className="ad-stats">
-        {SUMMARY.map((s) => (
+        {summary.map((s) => (
           <article key={s.key} className="ad-card ad-stat">
             <div className="ad-stat-top">
               <span>{t(`sm.sum.${s.key}`)}</span>
               <i className={`sm-pip ${s.tone}`} />
             </div>
-            <strong>{s.value}</strong>
+            <strong>{loading ? "…" : s.value}</strong>
           </article>
         ))}
       </section>
@@ -135,7 +175,10 @@ export default function SamplesPage() {
             <input
               type="search"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setPage(1);
+              }}
               placeholder={t("sm.f.searchPh")}
             />
           </div>
@@ -146,12 +189,15 @@ export default function SamplesPage() {
           <select
             className="sm-select"
             value={status}
-            onChange={(e) => setStatus(e.target.value)}
+            onChange={(e) => {
+              setStatus(e.target.value);
+              setPage(1);
+            }}
           >
             <option value="all">{t("sm.f.allStatus")}</option>
-            <option value="matched">{t("sm.status.matched")}</option>
-            <option value="pending">{t("sm.status.pending")}</option>
-            <option value="analyzed">{t("sm.status.analyzed")}</option>
+            <option value="received">{t("lab.st.received")}</option>
+            <option value="sequencing">{t("lab.st.sequencing")}</option>
+            <option value="done">{t("lab.st.done")}</option>
           </select>
         </label>
 
@@ -160,7 +206,10 @@ export default function SamplesPage() {
           <select
             className="sm-select"
             value={risk}
-            onChange={(e) => setRisk(e.target.value)}
+            onChange={(e) => {
+              setRisk(e.target.value);
+              setPage(1);
+            }}
           >
             <option value="all">{t("sm.f.allRisk")}</option>
             <option value="high">{t("sm.risk.high")}</option>
@@ -174,7 +223,10 @@ export default function SamplesPage() {
           <select
             className="sm-select"
             value={type}
-            onChange={(e) => setType(e.target.value)}
+            onChange={(e) => {
+              setType(e.target.value);
+              setPage(1);
+            }}
           >
             <option value="all">{t("sm.f.allType")}</option>
             <option value="buccal">{t("sm.type.buccal")}</option>
@@ -201,41 +253,53 @@ export default function SamplesPage() {
               </tr>
             </thead>
             <tbody>
-              {rows.length === 0 && (
+              {visible.length === 0 && (
                 <tr>
                   <td colSpan={8} className="sm-empty">
-                    {t("sm.empty")}
+                    {loading ? "…" : t("sm.empty")}
                   </td>
                 </tr>
               )}
-              {rows.map((s) => (
+              {visible.map((s) => (
                 <tr key={s.id}>
                   <td className="mono" dir="ltr">
                     {s.id}
                   </td>
                   <td>
                     <span className="ad-subject">
-                      <b>{initials(s.name)}</b>
+                      <b>{s.name ? initials(s.name) : "—"}</b>
                       <span className="sm-who">
-                        {s.name}
-                        <small>{s.ward}</small>
+                        {s.name || s.hospital}
+                        <small>{s.name ? s.ward : s.hospital}</small>
                       </span>
                     </span>
                   </td>
                   <td className="muted">{t(`sm.type.${s.type}`)}</td>
-                  <td className="muted">{s.date}</td>
+                  <td className="muted" dir="ltr">
+                    {s.date}
+                  </td>
                   <td className="mono" dir="ltr">
-                    {s.caseId}
+                    {s.caseId || MISSING}
                   </td>
                   <td>
-                    <em className={`ad-status sm-risk ${s.risk}`}>
-                      {t(`sm.risk.${s.risk}`)}
-                    </em>
+                    {s.risk ? (
+                      <em className={`ad-status sm-risk ${s.risk}`}>
+                        {t(`sm.risk.${s.risk}`)}
+                      </em>
+                    ) : (
+                      <span className="muted">{t("af.risk.none")}</span>
+                    )}
                   </td>
                   <td>
                     <em className={`ad-status ${s.status}`}>
-                      {t(`sm.status.${s.status}`)}
+                      {t(`lab.st.${s.status}`)}
                     </em>
+                    {s.flagged && (
+                      <em className="ad-status pending lab-c-small">
+                        {" "}
+                        {t("lab.flagged")}
+                      </em>
+                    )}
                   </td>
                   <td className="right">
                     <button
@@ -243,6 +307,11 @@ export default function SamplesPage() {
                       className="ad-more"
                       aria-label={t("sm.view")}
                       title={t("sm.view")}
+                      onClick={() =>
+                        navigate(
+                          `/admin/custody?sample=${encodeURIComponent(s.id)}`,
+                        )
+                      }
                     >
                       <Icon name="eye" size={18} />
                     </button>
@@ -255,23 +324,23 @@ export default function SamplesPage() {
 
         <div className="sm-foot">
           <small>
-            {t("sm.showing")} {from}-{to} {t("sm.of")}{" "}
-            {TOTAL.toLocaleString("en-US")} {t("sm.specimens")}
+            {t("sm.showing")} {from}-{to} {t("sm.of")} {rows.length}{" "}
+            {t("sm.specimens")}
           </small>
           <div className="sm-pager">
             <button
               type="button"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
+              onClick={() => setPage(Math.max(1, current - 1))}
+              disabled={current === 1}
               aria-label={t("sm.prev")}
             >
               <Icon name="chevron" size={16} />
             </button>
-            {[1, 2, 3].map((n) => (
+            {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
               <button
                 key={n}
                 type="button"
-                className={page === n ? "on" : ""}
+                className={current === n ? "on" : ""}
                 onClick={() => setPage(n)}
               >
                 {n}
@@ -279,8 +348,8 @@ export default function SamplesPage() {
             ))}
             <button
               type="button"
-              onClick={() => setPage((p) => Math.min(pages, p + 1))}
-              disabled={page === pages}
+              onClick={() => setPage(Math.min(pages, current + 1))}
+              disabled={current === pages}
               aria-label={t("sm.next")}
             >
               <Icon name="chevron" size={16} />

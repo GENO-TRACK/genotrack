@@ -1,0 +1,104 @@
+/* Hospital Settings. Extends AdminDashboard.css, SamplesPage.css, ComparisonPage.css
+   and SettingsPage.css (the st-* classes). Same black canvas, teal accents. */
+
+/* Hospital + role chips in the identity card */
+.hs-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+/* Role tiers for the staff list (the admin page only has admin / lab / investigator) */
+.st-tier.hospital_admin { background: rgba(45, 212, 191, 0.16); color: #2dd4bf; }
+.st-tier.geneticist { background: rgba(167, 139, 250, 0.16); color: #a78bfa; }
+.st-tier.staff { background: rgba(96, 165, 250, 0.16); color: #60a5fa; }
+
+/* Active / suspended status in the staff list */
+.hs-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.hs-status::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #2dd4bf;
+    box-shadow: 0 0 8px rgba(45, 212, 191, 0.6);
+}
+
+.hs-status.active { color: #2dd4bf; }
+
+.hs-status.suspended { color: #f87171; }
+
+.hs-status.suspended::before {
+    background: #f87171;
+    box-shadow: 0 0 8px rgba(248, 113, 113, 0.5);
+}
+
+/* Role dropdown inside a table row */
+.hs-role-select {
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+    color-scheme: dark;
+    font: inherit;
+    font-size: 12.5px;
+}
+
+.hs-role-select option { background: #0b1114; }
+
+.hs-role-select:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* "You" marker next to the signed-in person */
+.hs-you {
+    margin-inline-start: 8px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(45, 212, 191, 0.16);
+    color: #2dd4bf;
+    font-size: 10.5px;
+    font-style: normal;
+    font-weight: 800;
+}
+
+/* Suspend / Activate button states */
+.st-row-actions button.warn {
+    border-color: rgba(248, 113, 113, 0.4);
+    background: rgba(248, 113, 113, 0.1);
+    color: #f87171;
+}
+
+.st-row-actions button.warn:hover { background: rgba(248, 113, 113, 0.2); }
+
+.st-row-actions button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Note shown to people who cannot manage staff */
+.hs-note {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    border: 1px solid rgba(96, 165, 250, 0.35);
+    border-radius: 12px;
+    background: rgba(96, 165, 250, 0.08);
+    color: #93c5fd;
+    font-size: 13px;
+}
+
+@media (max-width: 900px) {
+    .hs-staff-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .hs-staff-wrap .st-table { min-width: 640px; }
+    .hs-staff-wrap .st-table th,
+    .hs-staff-wrap .st-table td { white-space: nowrap; }
+}

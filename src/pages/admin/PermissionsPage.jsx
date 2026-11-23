@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import DashboardLayout, {
   Icon,
 } from "../../components/dashboard/DashboardLayout";
-import { useLanguage } from "../../i18n/LanguageContext";
+import { useLanguage } from "../../i18n/useLanguage";
 import "./AdminDashboard.css";
 import "./SamplesPage.css";
 import "./ComparisonPage.css";

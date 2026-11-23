@@ -1,0 +1,305 @@
+/* Newborn registration (hospital). Extends PatientSearch.css and the admin glass cards.
+   Same black canvas, teal accents. */
+
+.nb-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-bottom: 40px;
+}
+
+.nb-section {
+  padding: 24px;
+}
+
+.nb-step {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.nb-step b {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(45, 212, 191, 0.12);
+  border: 1px solid rgba(45, 212, 191, 0.3);
+  color: #2dd4bf;
+  font-size: 13px;
+}
+
+.nb-step h3 {
+  margin: 0;
+  font-size: 17px;
+  color: #fff;
+}
+
+.nb-chain {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-inline-start: auto;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(45, 212, 191, 0.08);
+  border: 1px solid rgba(45, 212, 191, 0.25);
+  color: #5eead4;
+  font-size: 12px;
+}
+
+.nb-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.nb-grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.nb-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.nb-field .ps-input {
+  width: 100%;
+}
+
+select.ps-input {
+  appearance: none;
+  cursor: pointer;
+}
+
+select.ps-input option {
+  background: #0b0f14;
+  color: #fff;
+}
+
+/* Parent blocks */
+.nb-parent {
+  padding: 18px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.nb-parent h4 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.nb-notfound {
+  margin-top: 10px;
+  color: #fbbf24;
+}
+
+.nb-match .ps-found {
+  margin-bottom: 12px;
+}
+
+.nb-linked {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(45, 212, 191, 0.07);
+  border: 1px solid rgba(45, 212, 191, 0.25);
+}
+
+.nb-linked > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.nb-linked strong {
+  display: block;
+  color: #fff;
+}
+
+.nb-linked small {
+  display: block;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.nb-linked em {
+  display: block;
+  margin-top: 2px;
+  font-style: normal;
+  font-size: 12px;
+  color: #5eead4;
+}
+
+/* Upload */
+.nb-upload {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 28px 16px;
+  margin-bottom: 14px;
+  text-align: center;
+  border-radius: 16px;
+  border: 1px dashed rgba(45, 212, 191, 0.4);
+  background: rgba(45, 212, 191, 0.04);
+  color: #2dd4bf;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.nb-upload:hover {
+  background: rgba(45, 212, 191, 0.09);
+  border-color: #2dd4bf;
+}
+
+.nb-upload strong {
+  color: #fff;
+  word-break: break-all;
+}
+
+.nb-upload small {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.nb-upload input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.nb-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.nb-badges span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+}
+
+/* Consent */
+.nb-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: 14px;
+  background: rgba(45, 212, 191, 0.05);
+  border: 1px solid rgba(45, 212, 191, 0.2);
+  cursor: pointer;
+}
+
+.nb-consent input {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  accent-color: #2dd4bf;
+  flex-shrink: 0;
+}
+
+.nb-consent strong {
+  display: block;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.nb-consent small {
+  display: block;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Submit */
+.nb-submit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+.nb-submit small {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.nb-submit .sm-add:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Success */
+.nb-done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 40px 28px;
+}
+
+.nb-done h2 {
+  margin: 8px 0 0;
+  color: #fff;
+}
+
+.nb-done-ico {
+  width: 64px;
+  height: 64px;
+}
+
+.nb-record {
+  margin: 14px 0 20px;
+  padding: 10px 22px;
+  border-radius: 12px;
+  background: rgba(45, 212, 191, 0.08);
+  border: 1px solid rgba(45, 212, 191, 0.3);
+  color: #2dd4bf;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.nb-done .ps-actions {
+  justify-content: center;
+}
+
+@media (max-width: 900px) {
+  .nb-grid,
+  .nb-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .nb-chain {
+    margin-inline-start: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .nb-section {
+    padding: 18px;
+  }
+
+  .nb-submit .sm-add {
+    width: 100%;
+    justify-content: center;
+  }
+}

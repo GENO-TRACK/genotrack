@@ -1,0 +1,243 @@
+/* Hospital Family Linking. Extends AdminDashboard.css, SamplesPage.css,
+   ComparisonPage.css and FamilyPage.css. Same black canvas, teal accents. */
+
+.hf-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  margin-bottom: 30px;
+}
+
+.hf-layout > * {
+  min-width: 0;
+}
+
+/* ---------- Left list ---------- */
+.hf-list {
+  padding: 16px;
+}
+
+.hf-search {
+  display: flex;
+  margin-bottom: 12px;
+}
+
+.hf-search input {
+  width: 100%;
+}
+
+.hf-list ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 520px;
+  overflow-y: auto;
+}
+
+.hf-list li button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #e5eaee;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: background 150ms, border-color 150ms;
+}
+
+.hf-list li button:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.hf-list li button.on {
+  border-color: rgba(45, 212, 191, 0.55);
+  background: rgba(20, 184, 166, 0.12);
+}
+
+.hf-ico {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: rgba(45, 212, 191, 0.14);
+  color: #2dd4bf;
+}
+
+.hf-who {
+  flex: 1;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.hf-who b {
+  overflow: hidden;
+  color: #ffffff;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hf-who small {
+  color: #6b7780;
+  font-size: 12px;
+}
+
+.hf-state {
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-style: normal;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.hf-state.complete {
+  background: rgba(45, 212, 191, 0.16);
+  color: #2dd4bf;
+}
+
+.hf-state.partial {
+  background: rgba(251, 191, 36, 0.16);
+  color: #fbbf24;
+}
+
+.hf-state.none {
+  background: rgba(248, 113, 113, 0.16);
+  color: #f87171;
+}
+
+.hf-none {
+  padding: 14px;
+  color: #6b7780;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ---------- Detail ---------- */
+.hf-detail {
+  display: grid;
+  gap: 18px;
+}
+
+.hf-detail .fm-tree {
+  margin-bottom: 0;
+}
+
+.fm-person.hf-empty-parent {
+  border-style: dashed;
+  box-shadow: none;
+  opacity: 0.8;
+}
+
+.hf-muted {
+  color: #6b7780 !important;
+}
+
+.hf-confirmed {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: #2dd4bf;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.fm-person small {
+  line-height: 1.6;
+}
+
+.hf-badge.partial {
+  background: rgba(251, 191, 36, 0.16);
+  color: #fbbf24;
+}
+
+.hf-badge.none {
+  background: rgba(248, 113, 113, 0.16);
+  color: #f87171;
+}
+
+/* ---------- Facts ---------- */
+.hf-facts dl {
+  display: grid;
+  margin: 0;
+}
+
+.hf-facts dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.hf-facts dt {
+  color: #6b7780;
+  font-size: 13px;
+}
+
+.hf-facts dd {
+  margin: 0;
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-align: end;
+}
+
+.hf-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  color: #6b7780;
+  font-size: 12px;
+}
+
+/* ---------- Empty ---------- */
+.hf-empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding-block: 36px !important;
+  text-align: center;
+}
+
+.hf-empty h3 {
+  margin: 4px 0 0;
+  color: #ffffff;
+  font-size: 18px;
+}
+
+.hf-empty p {
+  max-width: 420px;
+  margin: 0;
+  color: #a3adb5;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1000px) {
+  .hf-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hf-list ul {
+    max-height: 320px;
+  }
+}

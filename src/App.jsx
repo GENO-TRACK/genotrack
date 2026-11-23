@@ -22,16 +22,44 @@ import FamilyPage from "./pages/admin/FamilyPage";
 import ReportsPage from "./pages/admin/ReportsPage";
 import NotificationsPage from "./pages/admin/NotificationsPage";
 import PermissionsPage from "./pages/admin/PermissionsPage";
-
-const ROLE_ROUTES = {
-  admin: "/admin/profile",
-  hospital_staff: "/hospital/profile",
-  lab_technician: "/lab/profile",
-  police_investigator: "/police/profile",
-};
+import AccountPage from "./pages/AccountPage";
+import HospitalDashboard from "./pages/hospital/HospitalDashboard";
+import PatientSearchPage from "./pages/hospital/PatientSearchPage";
+import PatientProfilePage from "./pages/hospital/PatientProfilePage";
+import NewbornPage from "./pages/hospital/NewbornPage";
+import HospitalSamplesPage from "./pages/hospital/HospitalSamplesPage";
+import HospitalRiskPage from "./pages/hospital/HospitalRiskPage";
+import AccessLogPage from "./pages/hospital/AccessLogPage";
+import HospitalReportsPage from "./pages/hospital/HospitalReportsPage";
+import HospitalFamilyPage from "./pages/hospital/HospitalFamilyPage";
+import HospitalNotificationsPage from "./pages/hospital/HospitalNotificationsPage";
+import HospitalSettingsPage from "./pages/hospital/HospitalSettingsPage";
+import LabDashboard from "./pages/lab/LabDashboard";
+import LabSamplesPage from "./pages/lab/LabSamplesPage";
+import LabCustodyPage from "./pages/lab/LabCustodyPage";
+import LabNotificationsPage from "./pages/lab/LabNotificationsPage";
+import LabSettingsPage from "./pages/lab/LabSettingsPage";
+import PoliceDashboard from "./pages/police/PoliceDashboard";
+import PoliceCasesPage from "./pages/police/PoliceCasesPage";
+import NewCasePage from "./pages/police/NewCasePage";
+import CaseDetailsPage from "./pages/police/CaseDetailsPage";
+import PoliceNotificationsPage from "./pages/police/PoliceNotificationsPage";
+import PoliceSettingsPage from "./pages/police/PoliceSettingsPage";
+import PoliceComparisonPage from "./pages/police/PoliceComparisonPage";
+import RequireRole from "./auth/RequireRole";
+import RequireHospitalRole from "./auth/RequireHospitalRole";
+import {
+  ROLE_ROUTES,
+  hospitalRoleFromNationalId,
+  roleFromNationalId,
+  saveUser,
+} from "./auth/session";
 
 // Temporary mock so you can see the flow before the backend exists.
 // Replace the body with a real fetch() call to your API later.
+// Demo: the role comes from the first letter of the National ID
+// (H = hospital, L = lab, P = police, anything else = admin).
+// Inside a hospital: HA = hospital admin, HG = geneticist, any other H = staff.
 async function authenticate({ nationalId, factoryNumber }) {
   await new Promise((resolve) => setTimeout(resolve, 600));
 
@@ -39,8 +67,13 @@ async function authenticate({ nationalId, factoryNumber }) {
     throw new Error("Invalid credentials");
   }
 
-  // The backend should return the account's real role.
-  return { nationalId, role: "admin" };
+  // The backend should return the account's real role (and hospitalRole).
+  const role = roleFromNationalId(nationalId);
+  const user = { nationalId, role };
+  if (role === "hospital_staff") {
+    user.hospitalRole = hospitalRoleFromNationalId(nationalId);
+  }
+  return user;
 }
 
 // Temporary mock for registration. Replace with a real API call later.
@@ -70,7 +103,7 @@ function LoginRoute() {
       throw new Error("Unknown role");
     }
     // Demo only: replace with real session handling when the backend exists.
-    localStorage.setItem("genotrack_user", JSON.stringify(user));
+    saveUser(user);
     navigate(target, { replace: true });
   }
 
@@ -79,12 +112,38 @@ function LoginRoute() {
   );
 }
 
-function ProfilePlaceholder({ title }) {
+// Shortcut: every admin page is protected by the same rule.
+function Admin({ children }) {
+  return <RequireRole roles={["admin"]}>{children}</RequireRole>;
+}
+
+function Hospital({ children }) {
+  return <RequireRole roles={["hospital_staff"]}>{children}</RequireRole>;
+}
+
+// Every lab page is protected by the same rule.
+function Lab({ children }) {
+  return <RequireRole roles={["lab_technician"]}>{children}</RequireRole>;
+}
+
+// Every police page is protected by the same rule.
+function Police({ children }) {
+  return <RequireRole roles={["police_investigator"]}>{children}</RequireRole>;
+}
+
+// Hospital pages that only a geneticist may open.
+function Geneticist({ children }) {
   return (
-    <main style={{ padding: 40, fontFamily: "sans-serif" }}>
-      <h1>{title}</h1>
-      <p>Profile page coming soon.</p>
-    </main>
+    <RequireHospitalRole roles={["geneticist"]}>{children}</RequireHospitalRole>
+  );
+}
+
+// Hospital pages that only a hospital admin may open.
+function HospitalAdmin({ children }) {
+  return (
+    <RequireHospitalRole roles={["hospital_admin"]}>
+      {children}
+    </RequireHospitalRole>
   );
 }
 
@@ -100,34 +159,300 @@ function App() {
             path="/otp"
             element={<Otp onVerify={verifyOtp} onResend={resendOtp} />}
           />
-          <Route path="/privacy" element={<LegalPage type="privacy" />} />
-          <Route path="/terms" element={<LegalPage type="terms" />} />
-          <Route path="/admin/profile" element={<AdminDashboard />} />
-          <Route path="/admin/settings" element={<SettingsPage />} />
-          <Route path="/admin/samples" element={<SamplesPage />} />
-          <Route path="/admin/samples/new" element={<AddSamplePage />} />
-          <Route path="/admin/comparison" element={<ComparisonPage />} />
-          <Route path="/admin/custody" element={<CustodyPage />} />
-          <Route path="/admin/risk" element={<RiskPage />} />
-          <Route path="/admin/family" element={<FamilyPage />} />
-          <Route path="/admin/reports" element={<ReportsPage />} />
-          <Route path="/admin/notifications" element={<NotificationsPage />} />
+          <Route
+            path="/privacy"
+            element={<LegalPage title="Privacy Policy" />}
+          />
+          <Route
+            path="/terms"
+            element={<LegalPage title="Terms & Conditions" />}
+          />
+
+          {/* Admin / Ministry */}
+          <Route
+            path="/admin/profile"
+            element={
+              <Admin>
+                <AdminDashboard />
+              </Admin>
+            }
+          />
+          <Route
+            path="/admin/settings"
+            element={
+              <Admin>
+                <SettingsPage />
+              </Admin>
+            }
+          />
+          <Route
+            path="/admin/samples"
+            element={
+              <Admin>
+                <SamplesPage />
+              </Admin>
+            }
+          />
+          <Route
+            path="/admin/samples/new"
+            element={
+              <Admin>
+                <AddSamplePage />
+              </Admin>
+            }
+          />
+          <Route
+            path="/admin/comparison"
+            element={
+              <Admin>
+                <ComparisonPage />
+              </Admin>
+            }
+          />
+          <Route
+            path="/admin/custody"
+            element={
+              <Admin>
+                <CustodyPage />
+              </Admin>
+            }
+          />
+          <Route
+            path="/admin/risk"
+            element={
+              <Admin>
+                <RiskPage />
+              </Admin>
+            }
+          />
+          <Route
+            path="/admin/family"
+            element={
+              <Admin>
+                <FamilyPage />
+              </Admin>
+            }
+          />
+          <Route
+            path="/admin/reports"
+            element={
+              <Admin>
+                <ReportsPage />
+              </Admin>
+            }
+          />
+          <Route
+            path="/admin/notifications"
+            element={
+              <Admin>
+                <NotificationsPage />
+              </Admin>
+            }
+          />
           <Route
             path="/admin/settings/permissions"
             element={<PermissionsPage />}
-          />{" "}
+          />
+          <Route
+            path="/admin/account"
+            element={
+              <Admin>
+                <AccountPage role="admin" />
+              </Admin>
+            }
+          />
+
+          {/* Hospital */}
           <Route
             path="/hospital/profile"
-            element={<ProfilePlaceholder title="Hospital Staff Profile" />}
+            element={
+              <Hospital>
+                <HospitalDashboard />
+              </Hospital>
+            }
           />
+          <Route
+            path="/hospital/search"
+            element={
+              <Hospital>
+                <PatientSearchPage />
+              </Hospital>
+            }
+          />
+          <Route
+            path="/hospital/patient/:patientId"
+            element={
+              <Hospital>
+                <PatientProfilePage />
+              </Hospital>
+            }
+          />
+          <Route
+            path="/hospital/newborn"
+            element={
+              <Hospital>
+                <NewbornPage />
+              </Hospital>
+            }
+          />
+          <Route
+            path="/hospital/samples"
+            element={
+              <Hospital>
+                <HospitalSamplesPage />
+              </Hospital>
+            }
+          />
+          <Route
+            path="/hospital/reports"
+            element={
+              <Hospital>
+                <HospitalReportsPage />
+              </Hospital>
+            }
+          />
+          <Route
+            path="/hospital/family"
+            element={
+              <Hospital>
+                <HospitalFamilyPage />
+              </Hospital>
+            }
+          />
+          <Route
+            path="/hospital/notifications"
+            element={
+              <Hospital>
+                <HospitalNotificationsPage />
+              </Hospital>
+            }
+          />
+          <Route
+            path="/hospital/settings"
+            element={
+              <Hospital>
+                <HospitalSettingsPage />
+              </Hospital>
+            }
+          />
+          <Route
+            path="/hospital/risk"
+            element={
+              <Geneticist>
+                <HospitalRiskPage />
+              </Geneticist>
+            }
+          />
+          <Route
+            path="/hospital/accesslog"
+            element={
+              <HospitalAdmin>
+                <AccessLogPage />
+              </HospitalAdmin>
+            }
+          />
+
+          {/* Lab technician */}
           <Route
             path="/lab/profile"
-            element={<ProfilePlaceholder title="Lab Technician Profile" />}
+            element={
+              <Lab>
+                <LabDashboard />
+              </Lab>
+            }
           />
           <Route
-            path="/police/profile"
-            element={<ProfilePlaceholder title="Police Investigator Profile" />}
+            path="/lab/samples"
+            element={
+              <Lab>
+                <LabSamplesPage />
+              </Lab>
+            }
           />
+          <Route
+            path="/lab/custody"
+            element={
+              <Lab>
+                <LabCustodyPage />
+              </Lab>
+            }
+          />
+          <Route
+            path="/lab/notifications"
+            element={
+              <Lab>
+                <LabNotificationsPage />
+              </Lab>
+            }
+          />
+          <Route
+            path="/lab/settings"
+            element={
+              <Lab>
+                <LabSettingsPage />
+              </Lab>
+            }
+          />
+
+          {/* Police investigator */}
+          <Route
+            path="/police/profile"
+            element={
+              <Police>
+                <PoliceDashboard />
+              </Police>
+            }
+          />
+          <Route
+            path="/police/cases"
+            element={
+              <Police>
+                <PoliceCasesPage />
+              </Police>
+            }
+          />
+          {/* "new" must come before ":caseId" */}
+          <Route
+            path="/police/cases/new"
+            element={
+              <Police>
+                <NewCasePage />
+              </Police>
+            }
+          />
+          <Route
+            path="/police/cases/:caseId"
+            element={
+              <Police>
+                <CaseDetailsPage />
+              </Police>
+            }
+          />
+          <Route
+            path="/police/comparison"
+            element={
+              <Police>
+                <PoliceComparisonPage />
+              </Police>
+            }
+          />
+          <Route
+            path="/police/notifications"
+            element={
+              <Police>
+                <PoliceNotificationsPage />
+              </Police>
+            }
+          />
+          <Route
+            path="/police/settings"
+            element={
+              <Police>
+                <PoliceSettingsPage />
+              </Police>
+            }
+          />
+
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>

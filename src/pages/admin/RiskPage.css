@@ -11,8 +11,9 @@
     padding: 0 18px;
 }
 
+.rk-head-actions .sf-btn:disabled,
 .rk-head-actions .sm-add:disabled {
-    opacity: 0.6;
+    opacity: 0.55;
     cursor: default;
 }
 
@@ -76,34 +77,83 @@
     min-width: 0;
 }
 
+.rk-subject {
+    display: grid;
+    align-content: start;
+}
+
 .rk-field {
     display: grid;
     gap: 8px;
     margin-bottom: 16px;
 }
 
-.rk-field select {
+/* Themed subject dropdown (sm-select gives the dark look) */
+.rk-field .rk-select {
     width: 100%;
-    height: 46px;
-    padding: 0 14px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    color: #ffffff;
-    font: inherit;
-    font-size: 14px;
-    color-scheme: dark;
+    appearance: none;
+    -webkit-appearance: none;
+    padding-inline-end: 38px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1.5l5 5 5-5' fill='none' stroke='%232dd4bf' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
 }
 
-.rk-field select:focus {
-    outline: none;
-    border-color: #2dd4bf;
-    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.18);
+[dir="rtl"] .rk-field .rk-select {
+    background-position: left 14px center;
 }
 
-.rk-field select option {
+.rk-field .rk-select option {
     background: #0b1215;
-    color: #ffffff;
+    color: #e6edf1;
+}
+
+.rk-field .rk-select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Sample facts: label on top, value right under it (same in EN and AR) */
+.rk-facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 18px;
+    margin: 0 0 16px;
+    padding: 16px 0;
+    border-block: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.rk-facts>div {
+    display: grid;
+    align-content: start;
+    justify-items: start;
+    gap: 4px;
+    min-width: 0;
+}
+
+.rk-facts>div.wide {
+    grid-column: 1 / -1;
+}
+
+.rk-facts dt {
+    color: #6b7780;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+[dir="rtl"] .rk-facts dt {
+    letter-spacing: 0;
+}
+
+.rk-facts dd {
+    margin: 0;
+    color: #e6edf1;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-align: start;
+    overflow-wrap: anywhere;
 }
 
 .rk-seq {
@@ -112,8 +162,6 @@
     justify-content: space-between;
     gap: 12px;
     flex-wrap: wrap;
-    padding-top: 16px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .rk-seq>div {
@@ -149,6 +197,24 @@
     background: #2dd4bf;
     box-shadow: 0 0 8px #2dd4bf;
     animation: dash-pulse 1.8s ease-in-out infinite;
+}
+
+.rk-seq em.rk-wait {
+    background: rgba(251, 191, 36, 0.14);
+    color: #fbbf24;
+}
+
+.rk-seq em.rk-wait i {
+    background: #fbbf24;
+    box-shadow: 0 0 8px #fbbf24;
+}
+
+/* Note under the sample card: analysis results are separate from the risk set on Add Sample */
+.rk-hint {
+    margin: 14px 0 0;
+    color: #6b7780;
+    font-size: 12px;
+    line-height: 1.6;
 }
 
 /* ---------- Lineage ---------- */
@@ -212,6 +278,43 @@
 .rk-match span {
     color: #6b7780;
     font-size: 11.5px;
+}
+
+/* Empty state: sample with no analysis yet */
+.rk-empty {
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: 10px;
+    min-height: 180px;
+    text-align: center;
+}
+
+.rk-empty h3 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.rk-empty p {
+    margin: 0;
+    max-width: 380px;
+    color: #a3adb5;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+/* Confirmation line under the header */
+.rk-done {
+    margin: 0 0 16px;
+    padding: 10px 16px;
+    border: 1px solid rgba(45, 212, 191, 0.35);
+    border-radius: 12px;
+    background: rgba(45, 212, 191, 0.1);
+    color: #2dd4bf;
+    font-size: 13px;
+    font-weight: 600;
 }
 
 /* ---------- Mid row ---------- */
@@ -389,6 +492,22 @@
     letter-spacing: 0;
 }
 
+/* The risk level chip also appears in the sample card, outside .rk-risk */
+.rk-level.high {
+    background: rgba(248, 113, 113, 0.18);
+    color: #f87171;
+}
+
+.rk-level.medium {
+    background: rgba(251, 191, 36, 0.16);
+    color: #fbbf24;
+}
+
+.rk-level.low {
+    background: rgba(45, 212, 191, 0.16);
+    color: #2dd4bf;
+}
+
 .rk-priority {
     color: #f87171;
     font-size: 11px;
@@ -406,6 +525,7 @@
     color: #ffffff;
     font-size: 17px;
     font-weight: 800;
+    overflow-wrap: anywhere;
 }
 
 .rk-pct {
@@ -462,11 +582,6 @@
     background: linear-gradient(135deg, rgba(248, 113, 113, 0.12), rgba(248, 113, 113, 0.02)) !important;
 }
 
-.rk-risk.high .rk-level {
-    background: rgba(248, 113, 113, 0.18);
-    color: #f87171;
-}
-
 .rk-risk.high .rk-pct {
     color: #f87171;
 }
@@ -476,22 +591,12 @@
     box-shadow: 0 0 10px rgba(248, 113, 113, 0.6);
 }
 
-.rk-risk.medium .rk-level {
-    background: rgba(251, 191, 36, 0.16);
-    color: #fbbf24;
-}
-
 .rk-risk.medium .rk-pct {
     color: #fbbf24;
 }
 
 .rk-risk.medium .rk-bar i {
     background: #fbbf24;
-}
-
-.rk-risk.low .rk-level {
-    background: rgba(45, 212, 191, 0.16);
-    color: #2dd4bf;
 }
 
 .rk-risk.low .rk-pct {
@@ -569,6 +674,31 @@
     color: #2dd4bf;
 }
 
+/* Add marker form */
+.rk-add {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 16px;
+    padding: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.rk-add .sm-add {
+    justify-content: center;
+}
+
+.rk-add-error {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: #f87171;
+    font-size: 12.5px;
+    font-weight: 600;
+}
+
 /* ---------- Rapid diagnostics ---------- */
 .rk-rapid {
     display: inline-flex;
@@ -590,6 +720,34 @@
 .rk-rapid:hover {
     background: rgba(20, 184, 166, 0.24);
     box-shadow: 0 0 24px rgba(45, 212, 191, 0.25);
+}
+
+.rk-rapid-box {
+    margin-top: 16px;
+    display: grid;
+    gap: 10px;
+    border-color: rgba(45, 212, 191, 0.35) !important;
+}
+
+.rk-rapid-box h3 {
+    margin: 0;
+    color: #2dd4bf;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.rk-rapid-box ul {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: #a3adb5;
+    font-size: 13.5px;
+}
+
+.rk-rapid-box b {
+    color: #ffffff;
 }
 
 /* ---------- Responsive ---------- */
@@ -624,6 +782,10 @@
 }
 
 @media (max-width: 600px) {
+    .rk-facts {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
     .rk-gauge {
         width: 130px;
         height: 130px;

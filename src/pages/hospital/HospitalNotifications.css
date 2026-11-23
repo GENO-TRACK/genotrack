@@ -1,0 +1,36 @@
+/* Hospital Notifications. Extends AdminDashboard.css, SamplesPage.css,
+   ComparisonPage.css and NotificationsPage.css (the nt-* classes).
+   Same black canvas, teal accents. */
+
+/* A fourth tone: red for lab flags and emergency openings */
+.nt-item.alert {
+    border-inline-start-color: #f87171 !important;
+}
+
+.nt-item.alert .nt-ico {
+    background: rgba(248, 113, 113, 0.16);
+    color: #f87171;
+}
+
+/* Reason written by the staff member in an emergency opening */
+.hn-reason {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid rgba(248, 113, 113, 0.3);
+    border-radius: 10px;
+    background: rgba(248, 113, 113, 0.08);
+    color: #fca5a5 !important;
+    font-size: 13px !important;
+}
+
+.hn-reason svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* The mark-all button is the only head action here */
+.nt-head-actions .sf-btn svg {
+    vertical-align: -3px;
+}

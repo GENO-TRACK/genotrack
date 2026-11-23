@@ -1,0 +1,157 @@
+/* Hospital Access Log. Extends AdminDashboard.css, SamplesPage.css and PatientSearch.css.
+   Same black canvas, teal accents. */
+
+.al-filters {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+
+.al-search {
+  flex: 1 1 260px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: #9aa7ad;
+}
+
+.al-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 14px;
+}
+
+.al-select {
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #0c1214;
+  color: #fff;
+  font-size: 14px;
+}
+
+.al-table-card {
+  padding: 8px 8px 16px;
+  margin-bottom: 40px;
+}
+
+/* Horizontal scroll on small screens so the table never clips */
+.al-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.al-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+}
+
+.al-table th {
+  text-align: start;
+  padding: 14px 16px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7f8d93;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.al-table td {
+  padding: 14px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 14px;
+  color: #e6edf0;
+  vertical-align: top;
+}
+
+.al-table td small {
+  display: block;
+  margin-top: 2px;
+  color: #7f8d93;
+  font-size: 12px;
+}
+
+.al-table td:first-child {
+  white-space: nowrap;
+}
+
+/* Emergency rows stand out */
+.al-row-danger td {
+  background: rgba(255, 82, 82, 0.06);
+}
+
+.al-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.al-badge.otp {
+  color: #2ee6c5;
+  background: rgba(46, 230, 197, 0.12);
+}
+
+.al-badge.emergency {
+  color: #ff6b6b;
+  background: rgba(255, 82, 82, 0.14);
+}
+
+.al-badge.registration {
+  color: #8ab4ff;
+  background: rgba(138, 180, 255, 0.14);
+}
+
+/* Report released to the patient */
+.al-badge.release {
+  color: #c9a8ff;
+  background: rgba(176, 124, 255, 0.16);
+}
+
+.al-danger {
+  color: #ff6b6b;
+}
+
+.al-empty {
+  padding: 28px 16px;
+  text-align: center;
+}
+
+.al-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding-top: 16px;
+  color: #9aa7ad;
+  font-size: 14px;
+}
+
+@media (max-width: 900px) {
+  .al-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .al-select {
+    width: 100%;
+  }
+}
