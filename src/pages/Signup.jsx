@@ -57,21 +57,14 @@ export default function Signup({ onRegister }) {
     setLoading(true);
 
     try {
-      const result = await onRegister({
+      await onRegister({
         fullName,
         nationalId,
         email,
-        phoneNumber: phone,
+        phone,
         password: form.password,
       });
-      navigate("/otp", {
-        state: {
-          purpose: "registration",
-          userId: result?.userId,
-          email: form.email,
-          phone: form.phone,
-        },
-      });
+      navigate("/otp", { state: { phone: form.phone, email: form.email } });
     } catch {
       setError(t("auth.signup.errFailed"));
     } finally {

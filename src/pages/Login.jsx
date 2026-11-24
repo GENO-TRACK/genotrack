@@ -1,13 +1,12 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import DnaHelix from "../components/DnaHelix";
 import AuthLangSwitch from "../i18n/AuthLangSwitch";
 import { useLanguage } from "../i18n/useLanguage";
 import "./Login.css";
 
-export default function Login({ authenticate }) {
+export default function Login({ authenticate, onAuthenticated }) {
   const { t } = useLanguage();
-  const navigate = useNavigate();
 
   const [nationalId, setNationalId] = useState("");
   const [factoryNumber, setFactoryNumber] = useState("");
@@ -36,20 +35,21 @@ export default function Login({ authenticate }) {
     setLoading(true);
 
     try {
-      const result = await authenticate({
+      const user = await authenticate({
         nationalId: nationalId.trim(),
-        password: factoryNumber,
+        factoryNumber,
+        trustTerminal,
       });
-      navigate("/otp", {
-        state: {
-          purpose: "login",
-          userId: result?.userId,
-          nationalId: nationalId.trim(),
-          email: result?.email || "",
-        },
-      });
-    } catch (err) {
-      setError(err?.message || t("auth.login.errFailed"));
+
+      // The backend must return the verified account role.
+      // Never assign Admin here when a role is missing.
+      if (!user?.role) {
+        throw new Error("Unable to verify your account access.");
+      }
+
+      await onAuthenticated(user);
+    } catch {
+      setError(t("auth.login.errFailed"));
     } finally {
       setLoading(false);
     }

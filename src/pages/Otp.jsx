@@ -10,7 +10,13 @@ import "./Otp.css";
 const OTP_CHARACTER_SRC = "/images/logo/Rating.png";
 
 const OTP_LENGTH = 4;
-const RESEND_SECONDS = 60;
+const RESEND_SECONDS = 30;
+
+const maskPhone = (phone = "") => {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length < 4) return "+20 - xxx xxx xxxx";
+  return `+20 - xxx xxx ${digits.slice(-4)}`;
+};
 
 const maskEmail = (email = "") => {
   const [name, domain] = email.split("@");
@@ -26,12 +32,10 @@ export default function Otp({ onVerify, onResend }) {
   const location = useLocation();
   const { t, isRtl } = useLanguage();
 
-  const {
-    email = "",
-    userId = "",
-    purpose = "registration",
-    nationalId = "",
-  } = location.state || {};
+  // Passed from Signup / Login: navigate('/otp', { state: { phone, email } })
+  const { phone = "", email = "" } = location.state || {};
+
+  const [method, setMethod] = useState("phone"); // 'phone' | 'email'
   const [values, setValues] = useState(Array(OTP_LENGTH).fill(""));
   const [seconds, setSeconds] = useState(RESEND_SECONDS);
   const [error, setError] = useState("");
@@ -47,7 +51,7 @@ export default function Otp({ onVerify, onResend }) {
 
   useEffect(() => {
     inputsRef.current[0]?.focus();
-  }, []);
+  }, [method]);
 
   const setDigit = (index, value) => {
     const digit = value.replace(/\D/g, "").slice(-1);
@@ -95,15 +99,19 @@ export default function Otp({ onVerify, onResend }) {
     if (seconds > 0) return;
     setError("");
     try {
-      if (!userId) throw new Error("Missing verification user.");
-      if (typeof onResend === "function") {
-        await onResend({ userId, purpose });
-      }
+      if (typeof onResend === "function") await onResend(method);
       setSeconds(RESEND_SECONDS);
       resetCode();
     } catch (err) {
       setError(err?.message || t("auth.otp.errResend"));
     }
+  };
+
+  const switchMethod = () => {
+    setMethod((m) => (m === "phone" ? "email" : "phone"));
+    setSeconds(RESEND_SECONDS);
+    resetCode();
+    setError("");
   };
 
   const handleSubmit = async (e) => {
@@ -119,16 +127,8 @@ export default function Otp({ onVerify, onResend }) {
     }
     try {
       setSubmitting(true);
-      const result = await onVerify({
-        code,
-        purpose,
-        userId,
-        nationalId,
-      });
-      navigate(
-        result?.target || (purpose === "registration" ? "/login" : "/login"),
-        { replace: true },
-      );
+      await onVerify({ code, method });
+      navigate("/login");
     } catch (err) {
       setError(err?.message || t("auth.otp.errInvalid"));
       resetCode();
@@ -136,6 +136,8 @@ export default function Otp({ onVerify, onResend }) {
       setSubmitting(false);
     }
   };
+
+  const isPhone = method === "phone";
 
   return (
     <main className="login-page otp-page">
@@ -201,11 +203,11 @@ export default function Otp({ onVerify, onResend }) {
 
           <div className="login-heading">
             <h2>{t("auth.otp.title")}</h2>
-            <p>{t("auth.otp.subEmail")}</p>
+            <p>{isPhone ? t("auth.otp.subPhone") : t("auth.otp.subEmail")}</p>
           </div>
 
           <p className="otp-target" dir="ltr">
-            {maskEmail(email)}
+            {isPhone ? maskPhone(phone) : maskEmail(email)}
           </p>
 
           <form onSubmit={handleSubmit} noValidate>
@@ -257,6 +259,11 @@ export default function Otp({ onVerify, onResend }) {
             </button>
           </form>
 
+          <p className="auth-switch">
+            <button type="button" className="otp-switch" onClick={switchMethod}>
+              {isPhone ? t("auth.otp.viaEmail") : t("auth.otp.viaPhone")}
+            </button>
+          </p>
         </div>
       </section>
     </main>
