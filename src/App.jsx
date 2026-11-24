@@ -3,7 +3,6 @@ import {
   Navigate,
   Route,
   Routes,
-  useNavigate,
 } from "react-router-dom";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -52,64 +51,74 @@ import {
   ROLE_ROUTES,
   hospitalRoleFromNationalId,
   roleFromNationalId,
+  saveAccessToken,
   saveUser,
 } from "./auth/session";
+import {
+  getCurrentUser,
+  loginUser,
+  registerUser,
+  resendOtp,
+  verifyLoginOtp,
+  verifyRegistrationOtp,
+} from "./api/authApi";
 
-// Temporary mock so you can see the flow before the backend exists.
-// Replace the body with a real fetch() call to your API later.
-// Demo: the role comes from the first letter of the National ID
-// (H = hospital, L = lab, P = police, anything else = admin).
-// Inside a hospital: HA = hospital admin, HG = geneticist, any other H = staff.
-async function authenticate({ nationalId, factoryNumber }) {
-  await new Promise((resolve) => setTimeout(resolve, 600));
-
-  if (!nationalId || !factoryNumber) {
-    throw new Error("Invalid credentials");
-  }
-
-  // The backend should return the account's real role (and hospitalRole).
-  const role = roleFromNationalId(nationalId);
-  const user = { nationalId, role };
-  if (role === "hospital_staff") {
-    user.hospitalRole = hospitalRoleFromNationalId(nationalId);
-  }
-  return user;
+async function authenticate({ nationalId, password }) {
+  return loginUser({ nationalId, password });
 }
 
-// Temporary mock for registration. Replace with a real API call later.
 async function register(data) {
-  await new Promise((resolve) => setTimeout(resolve, 600));
-  console.log("Register:", data);
+  return registerUser(data);
 }
 
-// Temporary mocks for OTP. Replace with real API calls later.
-async function verifyOtp({ code, method }) {
-  await new Promise((resolve) => setTimeout(resolve, 600));
-  console.log("Verify OTP:", code, method);
-  // Demo rule: any 4-digit code passes. Throw an Error here to test a wrong code.
+async function verifyOtp({ code, purpose, userId, nationalId }) {
+  if (!userId) throw new Error("Missing verification user.");
+
+  if (purpose === "registration") {
+    return verifyRegistrationOtp({ userId, otp: code });
+  }
+
+  const result = await verifyLoginOtp({ userId, otp: code });
+  if (!result?.accessToken) {
+    throw new Error("Login verification did not return an access token.");
+  }
+
+  saveAccessToken(result.accessToken);
+
+  let profile = null;
+  try {
+    profile = await getCurrentUser(result.accessToken);
+  } catch {
+    profile = result.user || null;
+  }
+
+  const role =
+    result.user?.role ||
+    profile?.role ||
+    roleFromNationalId(nationalId || result.user?.nationalId || "");
+  const user = {
+    ...profile,
+    ...result.user,
+    nationalId: nationalId || profile?.nationalId || result.user?.nationalId,
+    role,
+  };
+  if (role === "hospital_staff") {
+    user.hospitalRole =
+      result.user?.hospitalRole ||
+      profile?.hospitalRole ||
+      hospitalRoleFromNationalId(nationalId || "");
+  }
+
+  saveUser(user);
+  return { ...result, target: ROLE_ROUTES[role] };
 }
 
-async function resendOtp(method) {
-  await new Promise((resolve) => setTimeout(resolve, 400));
-  console.log("Resend OTP via:", method);
+async function resendOtpCode({ userId, purpose }) {
+  return resendOtp({ userId, purpose });
 }
 
 function LoginRoute() {
-  const navigate = useNavigate();
-
-  function handleAuthenticated(user) {
-    const target = ROLE_ROUTES[user.role];
-    if (!target) {
-      throw new Error("Unknown role");
-    }
-    // Demo only: replace with real session handling when the backend exists.
-    saveUser(user);
-    navigate(target, { replace: true });
-  }
-
-  return (
-    <Login authenticate={authenticate} onAuthenticated={handleAuthenticated} />
-  );
+  return <Login authenticate={authenticate} />;
 }
 
 // Shortcut: every admin page is protected by the same rule.
@@ -157,7 +166,9 @@ function App() {
           <Route path="/signup" element={<Signup onRegister={register} />} />
           <Route
             path="/otp"
-            element={<Otp onVerify={verifyOtp} onResend={resendOtp} />}
+            element={
+              <Otp onVerify={verifyOtp} onResend={resendOtpCode} />
+            }
           />
           <Route
             path="/privacy"

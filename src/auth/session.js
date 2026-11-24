@@ -23,6 +23,7 @@ export const ROLE_PREFIX = {
 export const HOSPITAL_ROLES = ["hospital_admin", "geneticist", "staff"];
 
 const KEY = "genotrack_user";
+const TOKEN_KEY = "genotrack_access_token";
 
 export function getUser() {
   try {
@@ -39,6 +40,15 @@ export function saveUser(user) {
 
 export function clearUser() {
   localStorage.removeItem(KEY);
+  localStorage.removeItem(TOKEN_KEY);
+}
+
+export function saveAccessToken(accessToken) {
+  localStorage.setItem(TOKEN_KEY, accessToken);
+}
+
+export function getAccessToken() {
+  return localStorage.getItem(TOKEN_KEY);
 }
 
 // Demo rule so you can test all four dashboards before the backend exists.
